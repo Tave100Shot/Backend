@@ -51,7 +51,7 @@ public class SearchService {
         List<GoogleItemDto> googleResponseDtos = new ArrayList<>();
         CountDownLatch latch = new CountDownLatch(1);
 
-        for(int i=1;i<=3;i++) {
+        for(int i=1;i<=2;i++) {
             GoogleResponseDto one = new GoogleResponseDto();
 
             int position = i;
@@ -85,7 +85,7 @@ public class SearchService {
                     googleResponseDtos.add(googleItemDto);
             }
 
-            if(i==0){
+            if(i==1){
                 String str = googleResponseDtos.get(0).getTitle();
                 if(!isRelated(str, String.valueOf(questionNumber)))
                     throw new ApiException(ErrorType._PROBLEM_NO_SOLUTION);
