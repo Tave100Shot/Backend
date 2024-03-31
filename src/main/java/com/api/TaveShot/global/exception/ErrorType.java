@@ -87,9 +87,12 @@ public enum ErrorType {
     // ------------------------------------------ Compile ------------------------------------------
     _COMPILE_PROBLEM_NOT_FOUND(NOT_FOUND, "PROBLEM_4040", "요청한 문제 번호를 찾을 수 없습니다."),
     _SUBMIT_PAGE_NOT_FOUND(NOT_FOUND, "COMPILE_4040", "아직 정답이 준비 되지 않아 코드를 제출할 수 없습니다."),
-    _PROBLEM_CONVERSION_ERROR(INTERNAL_SERVER_ERROR, "PROBLEM_5002", "문제 정보 변환 중 오류가 발생했습니다.")
+    _PROBLEM_CONVERSION_ERROR(INTERNAL_SERVER_ERROR, "PROBLEM_5002", "문제 정보 변환 중 오류가 발생했습니다."),
 
-    ;
+    // ------------------------------------------ NewsLetter ------------------------------------------
+    _SUBSCRIPTION_INVALID_TYPE(BAD_REQUEST, "NewsLetter_4000", "구독 유형이 잘못되었습니다."),
+    _SUBSCRIPTION_ALREADY_EXIST(NOT_FOUND, "NewsLetter_4001", "이미 구독 중인 이메일과 구독 유형입니다.");
+
 
     private final HttpStatus status;
     private final String errorCode;
