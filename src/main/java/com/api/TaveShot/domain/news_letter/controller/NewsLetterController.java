@@ -5,6 +5,7 @@ import com.api.TaveShot.domain.news_letter.service.NewsLetterService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,7 +16,7 @@ public class NewsLetterController {
     private final NewsLetterService newsLetterService;
 
     @PostMapping("/newsletter")
-    public SuccessResponse<Long> subscribe(final NewsLetterRequestDto requestDto){
+    public SuccessResponse<Long> subscribe(@RequestBody final NewsLetterRequestDto requestDto){
         Long subscribeId = newsLetterService.subscribe(requestDto);
         return new SuccessResponse<>(subscribeId);
     }

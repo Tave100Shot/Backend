@@ -4,8 +4,9 @@ import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.List;
+
+
 
 public enum SubscriptionType {
     TECHNOLOGY_KNOWLEDGE("Technology", List.of(10)), // 매월 10일 발송
