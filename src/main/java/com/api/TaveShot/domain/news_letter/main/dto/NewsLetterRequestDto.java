@@ -1,7 +1,6 @@
-package com.api.TaveShot.domain.news_letter.dto;
+package com.api.TaveShot.domain.news_letter.main.dto;
 
-import com.api.TaveShot.domain.news_letter.domain.SubscriptionType;
-import com.api.TaveShot.domain.post.post.domain.PostTier;
+import com.api.TaveShot.domain.news_letter.main.domain.SubscriptionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;

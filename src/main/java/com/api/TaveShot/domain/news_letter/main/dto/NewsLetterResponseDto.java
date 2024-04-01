@@ -1,4 +1,4 @@
-package com.api.TaveShot.domain.news_letter.dto;
+package com.api.TaveShot.domain.news_letter.main.dto;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -1,7 +1,7 @@
-package com.api.TaveShot.domain.news_letter.controller;
+package com.api.TaveShot.domain.news_letter.main.controller;
 
-import com.api.TaveShot.domain.news_letter.dto.NewsLetterRequestDto;
-import com.api.TaveShot.domain.news_letter.service.NewsLetterService;
+import com.api.TaveShot.domain.news_letter.main.dto.NewsLetterRequestDto;
+import com.api.TaveShot.domain.news_letter.main.service.NewsLetterService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,8 +1,7 @@
-package com.api.TaveShot.domain.news_letter.domain;
+package com.api.TaveShot.domain.news_letter.main.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.aspectj.apache.bcel.classfile.LineNumber;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

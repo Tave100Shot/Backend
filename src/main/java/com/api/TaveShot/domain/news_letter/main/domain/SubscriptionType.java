@@ -1,4 +1,4 @@
-package com.api.TaveShot.domain.news_letter.domain;
+package com.api.TaveShot.domain.news_letter.main.domain;
 
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
