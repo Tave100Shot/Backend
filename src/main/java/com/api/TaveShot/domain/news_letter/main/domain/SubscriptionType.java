@@ -34,4 +34,8 @@ public enum SubscriptionType {
     public boolean containsDay(int day) {
         return associatedDays.contains(day);
     }
+
+    public List<Integer> getAssociatedDays() {
+        return this.associatedDays;
+    }
 }

@@ -1,6 +1,7 @@
 package com.api.TaveShot.domain.news_letter.content.controller;
 
 import com.api.TaveShot.domain.news_letter.content.domain.NewsLetterContent;
+import com.api.TaveShot.domain.news_letter.content.dto.NewsLetterContentRequestDto;
 import com.api.TaveShot.domain.news_letter.content.service.NewsLetterContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,8 +17,8 @@ public class NewsLetterContentController {
     private final NewsLetterContentService newsLetterContentService;
 
     @PostMapping("/content")
-    public NewsLetterContent addContent(@RequestBody final NewsLetterContent content) {
-        return newsLetterContentService.saveContent(content);
+    public NewsLetterContent addContent(@RequestBody NewsLetterContentRequestDto contentRequestDto) {
+        return newsLetterContentService.saveContent(contentRequestDto);
     }
 }
 
