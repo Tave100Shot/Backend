@@ -1,5 +1,6 @@
 package com.api.TaveShot.global.config;
 
+import com.api.TaveShot.domain.Member.domain.Role;
 import com.api.TaveShot.global.security.jwt.JwtAuthenticationFilter;
 import com.api.TaveShot.global.security.oauth2.CustomOAuth2UserService;
 import com.api.TaveShot.global.security.oauth2.CustomOAuthSuccessHandler;
@@ -47,6 +48,8 @@ public class SecurityConfig {
                                         , "/api/v1/search/**"
                                         , "/api/compile/**"
                                 ).permitAll()
+
+                                .requestMatchers("/admin/**").hasAnyRole(Role.MANAGER.name())
                                 .anyRequest().authenticated());
 
         http
