@@ -6,6 +6,7 @@ import static com.api.TaveShot.global.exception.ErrorType._JWT_PARSING_ERROR;
 import static com.api.TaveShot.global.exception.ErrorType._USER_NOT_FOUND_BY_TOKEN;
 
 import com.api.TaveShot.domain.Member.domain.Member;
+import com.api.TaveShot.domain.Member.domain.Role;
 import com.api.TaveShot.domain.Member.repository.MemberRepository;
 import com.api.TaveShot.global.exception.ApiException;
 import io.jsonwebtoken.Claims;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -110,8 +112,12 @@ public class JwtProvider {
 
     private void setContextHolder(String jwtToken, Member loginMember) {
 
-        // ToDO 현재 비어있는 권한 등록, 추후에 수정
+        Role role = loginMember.getRole();
+
         List<GrantedAuthority> authorities = new ArrayList<>();
+        // Role을 GrantedAuthority로 변환하여 목록에 추가
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
+
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginMember, jwtToken, authorities);
 

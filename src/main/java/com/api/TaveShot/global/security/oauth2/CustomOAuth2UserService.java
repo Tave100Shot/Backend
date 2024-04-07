@@ -6,6 +6,7 @@ import static com.api.TaveShot.global.constant.OauthConstant.LOGIN_PATTERN;
 import static com.api.TaveShot.global.constant.OauthConstant.PROFILE_IMAGE_URL_PATTERN;
 
 import com.api.TaveShot.domain.Member.domain.Member;
+import com.api.TaveShot.domain.Member.domain.Role;
 import com.api.TaveShot.domain.Member.repository.MemberRepository;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -45,14 +46,25 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private Member registerNewMember(final Long gitId, final String gitLoginId,
                                      final String gitEmail, final String profileImageUrl) {
+        Role userRole = getRole(gitEmail);
+
         Member newMember = Member.builder()
                 .gitId(gitId)
                 .gitLoginId(gitLoginId)
                 .gitEmail(gitEmail)
                 .profileImageUrl(profileImageUrl)
+                .role(userRole)
                 .build();
 
         return memberRepository.save(newMember);
+    }
+
+    private Role getRole(final String gitEmail) {
+        // 이하 관리자 계정 추가 등록
+        if (gitEmail.equals("dlawnsgud427@naver.com")) {
+            return Role.MANAGER;
+        }
+        return Role.CLIENT;
     }
 
     private CustomOauth2User createCustomOauth2User(final Member member, final Map<String, Object> userInfo) {
