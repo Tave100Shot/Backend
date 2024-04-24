@@ -1,6 +1,9 @@
 package com.api.TaveShot.global.config;
 
+import com.api.TaveShot.domain.Member.domain.Role;
 import com.api.TaveShot.global.security.jwt.JwtAuthenticationFilter;
+import com.api.TaveShot.global.security.oauth2.CustomAccessDeniedHandler;
+import com.api.TaveShot.global.security.oauth2.CustomAuthenticationEntryPoint;
 import com.api.TaveShot.global.security.oauth2.CustomOAuth2UserService;
 import com.api.TaveShot.global.security.oauth2.CustomOAuthSuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,8 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomOAuthSuccessHandler customOAuthSuccessHandler;
+    private final CustomAuthenticationEntryPoint customAuthEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -48,6 +53,8 @@ public class SecurityConfig {
                                         , "/api/compile/**"
                                         ,"/api/newsletter/**"
                                 ).permitAll()
+
+                                .requestMatchers("/admin/**").hasAnyRole(Role.MANAGER.name())
                                 .anyRequest().authenticated());
 
         http
@@ -61,7 +68,11 @@ public class SecurityConfig {
                 .userInfoEndpoint()
                 .userService(customOAuth2UserService)
                     .and()
-                .successHandler(customOAuthSuccessHandler);
+                .successHandler(customOAuthSuccessHandler)
+                    .and()
+                .exceptionHandling()
+                        .authenticationEntryPoint(customAuthEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler);
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
