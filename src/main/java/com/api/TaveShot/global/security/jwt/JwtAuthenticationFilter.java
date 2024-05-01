@@ -1,6 +1,7 @@
 package com.api.TaveShot.global.security.jwt;
 
 import com.api.TaveShot.global.exception.ApiException;
+import com.api.TaveShot.global.security.oauth2.CustomAuthenticationFailureHandler;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final AuthenticationFailureHandler failureHandler;
+    private final CustomAuthenticationFailureHandler failureHandler;
 
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response,

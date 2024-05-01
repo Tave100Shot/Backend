@@ -90,7 +90,9 @@ public enum ErrorType {
     _PROBLEM_CONVERSION_ERROR(INTERNAL_SERVER_ERROR, "PROBLEM_5002", "문제 정보 변환 중 오류가 발생했습니다."),
 
     _ACCESS_DENIED(FORBIDDEN, "ACCESS_4031", "권한이 없습니다."),
-    ;
+    LETTER_TYPE_NOT_FOUND(NOT_FOUND, "LETTER_4041", "뉴스레터 타입이 잘못됐습니다."),
+    NEWSLETTER_NOT_FOUND(NOT_FOUND, "LETTER_4042", "뉴스레터를 찾을 수 없습니다.");
+
 
     private final HttpStatus status;
     private final String errorCode;
