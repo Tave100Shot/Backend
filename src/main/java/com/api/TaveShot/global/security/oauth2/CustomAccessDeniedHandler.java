@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+    // 인증된 사용자가 권한이 없는 리소스에 접근하려 할 때 동작
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+    // 인증되지 않은 사용자가 보호된 리소스에 접근하려 할 때 동작
+
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {

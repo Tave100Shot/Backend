@@ -53,7 +53,7 @@ public class SecurityConfig {
                                         , "/api/compile/**"
                                 ).permitAll()
 
-                                .requestMatchers("/admin/**").hasAnyRole(Role.MANAGER.name())
+                                .requestMatchers("/api/admin/**").hasAnyRole(Role.MANAGER.name())
                                 .anyRequest().authenticated());
 
         http
