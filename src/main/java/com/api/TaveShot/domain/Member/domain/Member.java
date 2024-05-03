@@ -31,6 +31,10 @@ public class Member extends BaseEntity {
     private String gitName;
     private String profileImageUrl;
     private String bojName;
+    private boolean isSubscribed;;
+    private boolean emailVerified;
+    private String verificationToken;
+
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -52,6 +56,22 @@ public class Member extends BaseEntity {
     public void changeBojInfo(MemberEditor memberEditor) {
         this.bojName = memberEditor.getBojName();
         this.tier = memberEditor.getTier();
+    }
+
+    public void updateMemberInfo(MemberEditor memberEditor) {
+        if (memberEditor.getGitEmail() != null) {
+            this.gitEmail = memberEditor.getGitEmail();
+        }
+        if (memberEditor.getBojName() != null) {
+            this.bojName = memberEditor.getBojName();
+        }
+    }
+
+    public void emailVerifiedSuccess() {
+        this.emailVerified = true;
+    }
+    public void Subscribed() {
+        this.isSubscribed = true;
     }
 }
 
