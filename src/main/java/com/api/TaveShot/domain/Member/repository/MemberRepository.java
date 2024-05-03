@@ -6,5 +6,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByGitId(Long gitId);
-    Member findByVerificationToken(String verificationToken);
 }
