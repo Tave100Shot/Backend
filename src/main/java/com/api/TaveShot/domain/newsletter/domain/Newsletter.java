@@ -4,8 +4,6 @@ import com.api.TaveShot.domain.base.BaseEntity;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.admin.editor.NewsletterEditor;
 import com.api.TaveShot.domain.newsletter.admin.editor.NewsletterEditor.NewsletterEditorBuilder;
-import com.api.TaveShot.domain.post.post.editor.PostEditor;
-import com.api.TaveShot.domain.post.post.editor.PostEditor.PostEditorBuilder;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

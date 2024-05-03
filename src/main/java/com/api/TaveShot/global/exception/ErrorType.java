@@ -91,11 +91,17 @@ public enum ErrorType {
     _ACCESS_DENIED(FORBIDDEN, "ACCESS_4031", "권한이 없습니다."),
 
     // ------------------------------------------ NewsLetter ------------------------------------------
-    _SUBSCRIPTION_INVALID_TYPE(BAD_REQUEST, "NewsLetter_4000", "구독 유형이 잘못되었습니다."),
-    _SUBSCRIPTION_ALREADY_EXIST(NOT_FOUND, "NewsLetter_4001", "이미 구독 중인 이메일과 구독 유형입니다."),
-
+    _SUBSCRIPTION_ALREADY_EXIST(NOT_FOUND, "LETTER_4040", "이미 구독 중인 이메일과 구독 유형입니다."),
     LETTER_TYPE_NOT_FOUND(NOT_FOUND, "LETTER_4041", "뉴스레터 타입이 잘못됐습니다."),
-    NEWSLETTER_NOT_FOUND(NOT_FOUND, "LETTER_4042", "뉴스레터를 찾을 수 없습니다.");
+    NEWSLETTER_NOT_FOUND(NOT_FOUND, "LETTER_4042", "뉴스레터를 찾을 수 없습니다."),
+    _EMAIL_OR_NICKNAME_NOT_FOUND(NOT_FOUND,"LETTER_4043", "이메일 혹은 닉네임이 등록되어 있지 않습니다."),
+    _INVALID_INPUT(BAD_REQUEST,"LETTER_4044", "gitEmail과 bojName은 null일 수 없습니다."),
+
+    // ---------------------------------------------- Email ---------------------------------------------
+    _INVALID_VERIFICATION_LINK(BAD_REQUEST,"EAMIL4040","유효하지 않은 인증 링크입니다."),
+    _EMAIL_NOT_VERIFIED(BAD_REQUEST,"EAMIL4041","인증되지 않은 이메일입니다."),
+    _INVALID_EMAIL_TOKEN(BAD_REQUEST,"EAMIL4042","유효하지 않은 이메일 토큰입니다."),
+    EMAIL_SEND_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5000","메일 전송에 실패했습니다." );
 
 
     private final HttpStatus status;
