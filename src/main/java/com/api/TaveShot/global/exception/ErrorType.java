@@ -101,6 +101,7 @@ public enum ErrorType {
     _INVALID_VERIFICATION_LINK(BAD_REQUEST,"EAMIL4040","유효하지 않은 인증 링크입니다."),
     _EMAIL_NOT_VERIFIED(BAD_REQUEST,"EAMIL4041","인증되지 않은 이메일입니다."),
     _INVALID_EMAIL_TOKEN(BAD_REQUEST,"EAMIL4042","유효하지 않은 이메일 토큰입니다."),
+    _EMAIL_ALREADY_VERIFIED(BAD_REQUEST,"EAMIL4043","이메일 인증이 이미 완료됐습니다."),
     EMAIL_SEND_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5000","메일 전송에 실패했습니다." );
 
 
