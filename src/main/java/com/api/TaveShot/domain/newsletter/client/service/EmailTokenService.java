@@ -1,19 +1,17 @@
 package com.api.TaveShot.domain.newsletter.client.service;
 
+import com.api.TaveShot.domain.Member.domain.Member;
 import com.api.TaveShot.domain.newsletter.client.domain.EmailToken;
 import com.api.TaveShot.domain.newsletter.client.repository.EmailTokenRepository;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
-import com.mysema.commons.lang.Assert;
+import com.api.TaveShot.global.util.SecurityUtil;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,34 +22,29 @@ public class EmailTokenService {
     private final EmailTokenRepository emailTokenRepository;
 
     // 이메일 인증 토큰 생성
-    public Long createEmailToken(Long memberId, String receiverEmail) {
+    public Long createEmailToken() {
+        Member currentMember = SecurityUtil.getCurrentMember();
+        if(currentMember == null)
+            throw new ApiException(ErrorType._USER_NOT_FOUND_DB);
 
-        Assert.notNull(memberId, "memberId는 필수입니다");
-        Assert.hasText(receiverEmail, "receiverEmail은 필수입니다.");
+        String receiverEmail = currentMember.getGitEmail();
 
         // 이메일 토큰 저장
-        EmailToken emailToken = EmailToken.createEmailToken(memberId);
+        EmailToken emailToken = EmailToken.createEmailToken(currentMember.getId());
         emailTokenRepository.save(emailToken);
 
-        // 이메일 전송
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(receiverEmail);
-        mailMessage.setSubject("이메일 인증");
-        //mailMessage.setText("https://100shot.net/confirm-email?token="+emailToken.getId()); //배포 버전
-        mailMessage.setText("http://localhost:3000/confirm-email?token="+emailToken.getId()); //로컬 주소
-        emailService.sendEmail(mailMessage);
-
+        String url = "http://localhost:8081/email/verify?token=" + emailToken.getId();
+        String htmlContent = "<html><body><a href='" + url + "'>여기를 클릭하여 이메일을 인증하세요.</a></body></html>";
 
         try {
-            emailService.sendEmail(mailMessage);
-        } catch (MailException e) {
-            throw new ApiException(ErrorType.EMAIL_SEND_FAILED);
+            emailService.sendEmail(receiverEmail, "이메일 인증", htmlContent);
+        } catch (MessagingException e) {
+            log.error("Failed to send email", e);
+            throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
         }
 
         return emailToken.getId();
     }
-
-
 
     // 유효한 토큰 가져오기
     public EmailToken findByIdAndExpirationDateAfterAndExpired(String emailTokenId) throws ApiException {

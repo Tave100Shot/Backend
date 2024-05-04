@@ -1,6 +1,9 @@
 package com.api.TaveShot.domain.newsletter.client.controller;
 
+import com.api.TaveShot.domain.Member.domain.Member;
+import com.api.TaveShot.domain.Member.repository.MemberRepository;
 import com.api.TaveShot.domain.newsletter.client.service.EmailService;
+import com.api.TaveShot.domain.newsletter.client.service.EmailTokenService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,19 +15,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping
+@RequestMapping("/api/email")
 public class EmailController {
 
+    private final EmailTokenService emailTokenService;
     private final EmailService emailService;
+
+    @PostMapping("/send-verification")
+    public SuccessResponse<Long> sendVerificationEmail() {
+        Long tokenId = emailTokenService.createEmailToken();
+        return new SuccessResponse<>(tokenId);
+    }
 
     @Operation(summary = "이메일 인증", description = "사용자의 이메일 인증을 처리합니다.")
     @ApiResponses(value = {
@@ -32,7 +39,7 @@ public class EmailController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = Boolean.class)))
     })
-    @GetMapping("/verify-email")
+    @GetMapping("/verify")
     public SuccessResponse<Boolean> verifyEmail(@Valid @RequestParam String token) {
         boolean result = emailService.verifyEmail(token);
         return new SuccessResponse<>(result);
