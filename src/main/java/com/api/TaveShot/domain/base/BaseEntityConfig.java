@@ -21,8 +21,13 @@ public class BaseEntityConfig {
                 return Optional.of("Anonymous");
             }
 
-            Member member = (Member) authentication.getPrincipal();
-            return Optional.ofNullable(member.getGitLoginId());
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof Member) {
+                Member member = (Member) principal;
+                return Optional.ofNullable(member.getGitLoginId());
+            } else {
+                return Optional.of("Unknown");
+            }
         };
     }
 }

@@ -51,6 +51,7 @@ public class SecurityConfig {
                                         , "/api/health"
                                         , "/api/v1/search/**"
                                         , "/api/compile/**"
+                                        ,"/api/email/verify/**"
                                         ,"/api/newsletter/**"
                                 ).permitAll()
 

@@ -71,6 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/api/compile/**") ||
                 requestURI.startsWith("/v3/api-docs/**") ||
                 requestURI.startsWith("/error") ||
+                requestURI.startsWith("/api/email/verify") ||
                 requestURI.startsWith("/login/**");
     }
 }

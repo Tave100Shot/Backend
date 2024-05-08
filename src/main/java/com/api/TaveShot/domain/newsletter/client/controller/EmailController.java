@@ -28,8 +28,8 @@ public class EmailController {
     private final EmailService emailService;
 
     @PostMapping("/send-verification")
-    public SuccessResponse<Long> sendVerificationEmail() {
-        Long tokenId = emailTokenService.createEmailToken();
+    public SuccessResponse<String> sendVerificationEmail() {
+        String tokenId = emailTokenService.createEmailToken();
         return new SuccessResponse<>(tokenId);
     }
 

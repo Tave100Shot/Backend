@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EmailToken {
 
-    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 5L;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,16 +22,8 @@ public class EmailToken {
 
     private Long memberId;
 
-
-    // 이메일 인증 토큰 생성
-    public static EmailToken createEmailToken(Long memberId) {
-        EmailToken emailToken = new EmailToken();
-        emailToken.expirationDate = LocalDateTime.now().plusMinutes(EMAIL_TOKEN_EXPIRATION_TIME_VALUE); // 5분 후 만료
-        emailToken.expired = false;
-        emailToken.memberId = memberId;
-
-        return emailToken;
-    }
+    @Column(nullable = false)
+    private String token;
 
     // 토큰 만료
     public void useToken() {
