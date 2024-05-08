@@ -33,7 +33,6 @@ public class Member extends BaseEntity {
     private String bojName;
     private boolean isSubscribed;;
     private boolean emailVerified;
-    private String verificationToken;
 
 
     @Builder.Default

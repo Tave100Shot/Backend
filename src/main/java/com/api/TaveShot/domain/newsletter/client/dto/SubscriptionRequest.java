@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 
 @Getter
 @Builder
@@ -15,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SubscriptionRequest {
 
-    @Schema(description = "구독 유형", example = "'DEV_LETTER' or 'EMPLOYEE_LETTER'")
+    @Schema(description = "구독 유형", example = "'DEV_LETTER' or 'EMPLOYEE_LETTER' or 'ALL'")
     @NotEmpty
-    private LetterType letterType;
+    private List<LetterType> letterTypes;
 }
