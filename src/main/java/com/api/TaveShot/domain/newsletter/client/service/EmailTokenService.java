@@ -1,19 +1,14 @@
 package com.api.TaveShot.domain.newsletter.client.service;
 
 import com.api.TaveShot.domain.Member.domain.Member;
-import com.api.TaveShot.domain.newsletter.client.domain.EmailToken;
-import com.api.TaveShot.domain.newsletter.client.repository.EmailTokenRepository;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.api.TaveShot.global.security.jwt.JwtProvider;
 import com.api.TaveShot.global.util.SecurityUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,7 +16,6 @@ import java.time.LocalDateTime;
 public class EmailTokenService {
 
     private final EmailSenderService emailService;
-    private final EmailTokenRepository emailTokenRepository;
     private final JwtProvider jwtProvider;
 
     // 이메일 인증 토큰 생성
@@ -45,11 +39,5 @@ public class EmailTokenService {
         }
 
         return jwtToken;
-    }
-
-    // 유효한 토큰 가져오기
-    public EmailToken findByTokenAndExpirationDateAfterAndExpired(String token) throws ApiException {
-        return emailTokenRepository.findByTokenAndExpirationDateAfterAndExpired(token, LocalDateTime.now(), false)
-                .orElseThrow(() -> new ApiException(ErrorType._INVALID_EMAIL_TOKEN));
     }
 }

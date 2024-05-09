@@ -2,7 +2,7 @@ package com.api.TaveShot.domain.newsletter.client.service;
 
 import com.api.TaveShot.domain.Member.domain.Member;
 import com.api.TaveShot.domain.Member.repository.MemberRepository;
-import com.api.TaveShot.domain.newsletter.client.domain.EmailToken;
+//import com.api.TaveShot.domain.newsletter.client.domain.EmailToken;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.api.TaveShot.global.security.jwt.JwtProvider;
