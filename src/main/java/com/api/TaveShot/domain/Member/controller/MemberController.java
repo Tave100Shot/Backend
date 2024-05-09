@@ -1,5 +1,6 @@
 package com.api.TaveShot.domain.Member.controller;
 
+import com.api.TaveShot.domain.Member.dto.request.MemberUpdateInfo;
 import com.api.TaveShot.domain.Member.service.MemberService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,15 +10,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/member")
 @RequiredArgsConstructor
 public class MemberController {
+
     private final MemberService memberService;
 
     @Operation(summary = "사용자 gitEmail, bojName 정보 수정", description = "사용자의 gitEmail, bojName 정보를 수정합니다.")
@@ -27,8 +26,8 @@ public class MemberController {
                             schema = @Schema(implementation = Long.class)))
     })
     @PostMapping("/updateInfo")
-    public SuccessResponse<Long> updateMemberDetails(@RequestParam String gitEmail, @RequestParam String bojName) {
-        Long memberId = memberService.updateMemberDetails(gitEmail, bojName);
+    public SuccessResponse<Long> updateMemberDetails(@RequestBody MemberUpdateInfo updateInfo) {
+        Long memberId = memberService.updateMemberDetails(updateInfo.getGitEmail(), updateInfo.getBojName());
         return new SuccessResponse<>(memberId);
     }
 }

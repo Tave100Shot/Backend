@@ -14,39 +14,34 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MemberService {
+
     private final MemberRepository memberRepository;
+
 
     @Transactional
     public Long updateMemberDetails(String gitEmail, String bojName) {
         Member currentMember = SecurityUtil.getCurrentMember();
-        if (currentMember == null) {
-            throw new ApiException(ErrorType._UNAUTHORIZED);
-        }
 
-        if (gitEmail == null && bojName == null) {
-            throw new ApiException(ErrorType._INVALID_INPUT);
-        }
+        MemberEditor memberEditor = getMemberEditor(gitEmail, bojName, currentMember);
 
-        boolean updated = false;
-        MemberEditor.MemberEditorBuilder builder = MemberEditor.builder();
+        currentMember.updateMemberInfo(memberEditor);
+        memberRepository.save(currentMember);
+
+        return currentMember.getId();
+    }
+
+    private MemberEditor getMemberEditor(String gitEmail, String bojName, Member member) {
+        MemberEditor.MemberEditorBuilder editorBuilder = MemberEditor.builder();
 
         if (gitEmail != null) {
-            builder.gitEmail(gitEmail);
-            updated = true;
+            editorBuilder.gitEmail(gitEmail);
         }
 
         if (bojName != null) {
-            builder.bojName(bojName);
-            updated = true;
+            editorBuilder.bojName(bojName);
         }
 
-        if (updated) {
-            MemberEditor memberEditor = builder.build();
-            currentMember.updateMemberInfo(memberEditor);
-            memberRepository.save(currentMember);
-        }
-
-        return currentMember.getId();
+        return editorBuilder.build();
     }
 }
 

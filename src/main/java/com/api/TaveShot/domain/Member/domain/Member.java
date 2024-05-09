@@ -31,8 +31,7 @@ public class Member extends BaseEntity {
     private String gitName;
     private String profileImageUrl;
     private String bojName;
-    private boolean isSubscribed;;
-    private boolean emailVerified;
+    private boolean isSubscribed, emailVerified;
 
 
     @Builder.Default
