@@ -27,7 +27,7 @@ public class MemberController {
     })
     @PostMapping("/updateInfo")
     public SuccessResponse<Long> updateMemberDetails(@RequestBody MemberUpdateInfo updateInfo) {
-        Long memberId = memberService.updateMemberDetails(updateInfo.getGitEmail(), updateInfo.getBojName());
+        Long memberId = memberService.updateMemberDetails(updateInfo);
         return new SuccessResponse<>(memberId);
     }
 }

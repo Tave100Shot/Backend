@@ -2,8 +2,10 @@ package com.api.TaveShot.domain.Member.service;
 
 
 import com.api.TaveShot.domain.Member.domain.Member;
+import com.api.TaveShot.domain.Member.dto.request.MemberUpdateInfo;
 import com.api.TaveShot.domain.Member.editor.MemberEditor;
 import com.api.TaveShot.domain.Member.repository.MemberRepository;
+import com.api.TaveShot.domain.post.post.editor.PostEditor;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.api.TaveShot.global.util.SecurityUtil;
@@ -19,10 +21,10 @@ public class MemberService {
 
 
     @Transactional
-    public Long updateMemberDetails(String gitEmail, String bojName) {
+    public Long updateMemberDetails(final MemberUpdateInfo updateInfo) {
         Member currentMember = SecurityUtil.getCurrentMember();
 
-        MemberEditor memberEditor = getMemberEditor(gitEmail, bojName, currentMember);
+        MemberEditor memberEditor = getMemberEditor(updateInfo, currentMember);
 
         currentMember.updateMemberInfo(memberEditor);
         memberRepository.save(currentMember);
@@ -30,18 +32,12 @@ public class MemberService {
         return currentMember.getId();
     }
 
-    private MemberEditor getMemberEditor(String gitEmail, String bojName, Member member) {
-        MemberEditor.MemberEditorBuilder editorBuilder = MemberEditor.builder();
-
-        if (gitEmail != null) {
-            editorBuilder.gitEmail(gitEmail);
-        }
-
-        if (bojName != null) {
-            editorBuilder.bojName(bojName);
-        }
-
-        return editorBuilder.build();
+    private MemberEditor getMemberEditor(MemberUpdateInfo updateInfo, Member member) {
+        MemberEditor.MemberEditorBuilder editorBuilder = member.toEditor();
+        return editorBuilder
+                .gitEmail(updateInfo.getGitEmail())
+                .bojName(updateInfo.getBojName())
+                .build();
     }
 }
 
