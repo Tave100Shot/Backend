@@ -31,6 +31,7 @@ public class Newsletter extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private LetterType letterType;
+    private boolean sent = false;
 
     public static Newsletter from(final NewsletterCreateRequest request) {
         String inputType = request.letterType();
@@ -52,6 +53,9 @@ public class Newsletter extends BaseEntity {
     public void edit(NewsletterEditor newsletterEditor) {
         title = newsletterEditor.getTitle();
         content = newsletterEditor.getContent();
+    }
 
+    public void letterSent() {
+        this.sent = true;
     }
 }

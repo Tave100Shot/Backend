@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface NewsletterRepository extends JpaRepository<Newsletter, Long>, NewsletterRepositoryCustom {
-    Optional<Newsletter> findTop1ByLetterTypeOrderByCreatedDateAsc(LetterType letterType);
+    Optional<Newsletter> findTop1ByLetterTypeAndSentOrderByCreatedDateAsc(LetterType letterType, boolean sent);
 }
 
