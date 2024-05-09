@@ -23,35 +23,25 @@ public class NewsletterSchedulingService {
     private final NewsletterRepository newsletterRepository;
     private final EmailSenderService emailSenderService;
 
-    // 격주 월요일 오전 8시에 전송
-    //@Scheduled(cron = "0 0 8 ? * MON/2")
-
-    //테스트를 위한 스케줄러 : 서버 실행 후 1분 뒤 전송
-    @Scheduled(initialDelay = 60000, fixedDelay = Long.MAX_VALUE)
+    @Scheduled(initialDelay = 60000, fixedDelay = 5000)
     public void sendNewsletters() {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
         Map<LetterType, Newsletter> latestNewslettersByType = fetchLatestNewslettersByType();
 
         for (Subscription sub : subscriptions) {
-            List<LetterType> typesToSend = new ArrayList<>();
-            switch (sub.getLetterType()) {
-                case ALL:
-                    typesToSend.addAll(Arrays.asList(LetterType.DEV_LETTER, LetterType.EMPLOYEE_LETTER));
-                    break;
-                default:
-                    typesToSend.add(sub.getLetterType());
-                    break;
-            }
+            List<LetterType> typesToSend = determineTypesToSend(sub.getLetterType());
 
             for (LetterType type : typesToSend) {
                 Newsletter newsletterToSend = latestNewslettersByType.get(type);
-                if (newsletterToSend != null) {
+                if (newsletterToSend != null && !newsletterToSend.isSent()) {
                     try {
                         emailSenderService.sendEmail(
                                 sub.getMember().getGitEmail(),
                                 newsletterToSend.getTitle(),
                                 newsletterToSend.getContent()
                         );
+                        newsletterToSend.letterSent();
+                        newsletterRepository.save(newsletterToSend);
                     } catch (MessagingException e) {
                         System.err.println("Failed to send email to: " + sub.getMember().getGitEmail() + "; Error: " + e.getMessage());
                         throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
@@ -64,12 +54,18 @@ public class NewsletterSchedulingService {
     private Map<LetterType, Newsletter> fetchLatestNewslettersByType() {
         Map<LetterType, Newsletter> latestNewslettersByType = new EnumMap<>(LetterType.class);
         for (LetterType type : LetterType.values()) {
-            newsletterRepository.findTop1ByLetterTypeOrderByCreatedDateAsc(type)
+            newsletterRepository.findTop1ByLetterTypeAndSentOrderByCreatedDateAsc(type, false)
                     .ifPresent(newsletter -> latestNewslettersByType.put(type, newsletter));
         }
         return latestNewslettersByType;
     }
 
-
-
+    private List<LetterType> determineTypesToSend(LetterType subscribedType) {
+        if (subscribedType == LetterType.ALL) {
+            return Arrays.asList(LetterType.DEV_LETTER, LetterType.EMPLOYEE_LETTER);
+        } else {
+            return Collections.singletonList(subscribedType);
+        }
+    }
 }
+
