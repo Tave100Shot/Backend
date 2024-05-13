@@ -31,7 +31,8 @@ public class Member extends BaseEntity {
     private String gitName;
     private String profileImageUrl;
     private String bojName;
-    private boolean isSubscribed, emailVerified;
+    private boolean isSubscribed;
+    private boolean emailVerified;
 
 
     @Builder.Default
@@ -61,7 +62,7 @@ public class Member extends BaseEntity {
     public void emailVerifiedSuccess() {
         this.emailVerified = true;
     }
-    public void Subscribed() {
+    public void subscribed() {
         this.isSubscribed = true;
     }
 }

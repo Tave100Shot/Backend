@@ -103,10 +103,13 @@ public enum ErrorType {
     _INVALID_EMAIL_TOKEN(BAD_REQUEST,"EAMIL4042","유효하지 않은 이메일 토큰입니다."),
     _EMAIL_ALREADY_VERIFIED(BAD_REQUEST,"EAMIL4043","이메일 인증이 이미 완료됐습니다."),
     _EXPIRED_EMAIL_TOKEN(UNAUTHORIZED,"EAMIL4010","메일 토큰 유효기간이 만료됐습니다." ),
-    _EMAIL_SEND_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5000","메일 전송에 실패했습니다." );
+    _EMAIL_SEND_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5000","메일 전송에 실패했습니다." ),
 
 
+    // ---------------------------------------------- static ---------------------------------------------
+    _STATIC_ERROR_RUNTIME_EXCEPTION(INTERNAL_SERVER_ERROR, "SERVER_500", "알 수 없는 서버 에러입니다."),
 
+    ;
     private final HttpStatus status;
     private final String errorCode;
     private final String message;

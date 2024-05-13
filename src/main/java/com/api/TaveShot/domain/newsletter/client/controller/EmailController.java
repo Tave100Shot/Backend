@@ -40,8 +40,7 @@ public class EmailController {
                             schema = @Schema(implementation = Boolean.class)))
     })
     @GetMapping("/verify")
-    public SuccessResponse<Boolean> verifyEmail(@Valid @RequestParam String token) {
-        boolean result = emailService.verifyEmail(token);
-        return new SuccessResponse<>(result);
+    public SuccessResponse<Long> verifyEmail(@Valid @RequestParam String token) {
+        return new SuccessResponse<>(emailService.verifyEmail(token));
     }
 }

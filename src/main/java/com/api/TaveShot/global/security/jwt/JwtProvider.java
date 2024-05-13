@@ -55,10 +55,10 @@ public class JwtProvider {
                 .compact();
     }
 
-    public String generateJwtTokenForEmail(final String id, int minutesUntilExpiration) {
+    public String generateJwtTokenForEmail(final String id) {
         Claims claims = createClaims(id);
         Date now = new Date();
-        long expiredDate = now.getTime() + minutesUntilExpiration * 60 * 1000;
+        long expiredDate = now.getTime() + 5 * 60 * 1000;   // 유효 시간 5분
         SecretKey secretKey = generateKey();
 
         return Jwts.builder()

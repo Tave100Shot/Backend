@@ -39,6 +39,14 @@ public class MemberService {
                 .bojName(updateInfo.getBojName())
                 .build();
     }
+
+    public Member findById(Long id) {
+        return memberRepository.findByIdActivated(id);
+    }
+
+    public void save(Member member) {
+        memberRepository.save(member);
+    }
 }
 
 
