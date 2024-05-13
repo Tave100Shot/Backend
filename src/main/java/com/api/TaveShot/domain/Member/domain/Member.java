@@ -62,8 +62,17 @@ public class Member extends BaseEntity {
     public void emailVerifiedSuccess() {
         this.emailVerified = true;
     }
+
     public void subscribed() {
         this.isSubscribed = true;
     }
+
+
+    public void changeGitEmail(String newgitEmail) {
+        this.gitEmail = newgitEmail;
+        this.emailVerified = false;
+        this.isSubscribed = false;
+    }
+
 }
 

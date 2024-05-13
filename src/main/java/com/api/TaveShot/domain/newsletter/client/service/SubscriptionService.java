@@ -74,7 +74,7 @@ public class SubscriptionService {
                     .build();
             subscriptionRepository.save(subscription);
 
-            member.Subscribed();
+            member.subscribed();
             memberRepository.save(member);
 
             try {

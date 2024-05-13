@@ -25,7 +25,7 @@ public class MemberController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = Long.class)))
     })
-    @PostMapping("/updateInfo")
+    @PostMapping
     public SuccessResponse<Long> updateMemberDetails(@RequestBody MemberUpdateInfo updateInfo) {
         Long memberId = memberService.updateMemberDetails(updateInfo);
         return new SuccessResponse<>(memberId);
