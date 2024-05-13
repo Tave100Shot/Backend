@@ -39,7 +39,7 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Tier tier = Tier.BEGINNER;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     public String tierName() {
