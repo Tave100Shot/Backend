@@ -48,21 +48,14 @@ public class Member extends BaseEntity {
     public MemberEditorBuilder toEditor() {
         return MemberEditor.builder()
                 .bojName(bojName)
-                .tier(tier);
+                .tier(tier)
+                .gitEmail(gitEmail);
     }
 
     public void changeBojInfo(MemberEditor memberEditor) {
         this.bojName = memberEditor.getBojName();
         this.tier = memberEditor.getTier();
-    }
-
-    public void updateMemberInfo(MemberEditor memberEditor) {
-        if (memberEditor.getGitEmail() != null) {
-            this.gitEmail = memberEditor.getGitEmail();
-        }
-        if (memberEditor.getBojName() != null) {
-            this.bojName = memberEditor.getBojName();
-        }
+        this.gitEmail = memberEditor.getGitEmail();
     }
 
     public void emailVerifiedSuccess() {

@@ -1,6 +1,8 @@
 package com.api.TaveShot.domain.Member.service;
 
 
+import static com.api.TaveShot.global.util.SecurityUtil.*;
+
 import com.api.TaveShot.domain.Member.domain.Member;
 import com.api.TaveShot.domain.Member.dto.request.MemberUpdateInfo;
 import com.api.TaveShot.domain.Member.editor.MemberEditor;
@@ -19,16 +21,14 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
-
     @Transactional
     public Long updateMemberDetails(final MemberUpdateInfo updateInfo) {
-        Member currentMember = SecurityUtil.getCurrentMember();
+        Member currentMember = getCurrentMember();
+        Member findMember = memberRepository.findByIdActivated(currentMember.getId());
 
-        MemberEditor memberEditor = getMemberEditor(updateInfo, currentMember);
+        MemberEditor memberEditor = getMemberEditor(updateInfo, findMember);
 
-        currentMember.updateMemberInfo(memberEditor);
-        memberRepository.save(currentMember);
-
+        findMember.changeBojInfo(memberEditor);
         return currentMember.getId();
     }
 
