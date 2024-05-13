@@ -29,9 +29,6 @@ public class SubscriptionService {
 
     public List<SubscriptionResponse> subscribe(SubscriptionRequest request) throws ApiException {
         Member member = SecurityUtil.getCurrentMember();
-        if (member == null) {
-            throw new ApiException(ErrorType._USER_NOT_FOUND_DB);
-        }
 
         List<LetterType> requestedTypes = request.getLetterTypes();
         List<Subscription> existingSubscriptions = subscriptionRepository.findByMemberId(member.getId());
@@ -47,21 +44,21 @@ public class SubscriptionService {
             }
         }
 
-        // 이미 구독 중인 상태에서 ALL 구독을 시도 or 이미 ALL 구독 중인 상태에서 다른 개별 유형 구독 시도
-        if ((currentSubscriptions.contains(LetterType.ALL) && !requestedTypes.contains(LetterType.ALL)) ||
-                (!currentSubscriptions.isEmpty() && requestedTypes.contains(LetterType.ALL))) {
+        // 이미 ALL을 구독 중인 경우
+        if (currentSubscriptions.contains(LetterType.ALL)) {
             throw new ApiException(ErrorType._SUBSCRIPTION_ALREADY_EXIST);
         }
 
-        // 이미 구독한 상태에서 다른 개별 유형을 구독하려고 할 경우 ALL로 업데이트
-        if ((currentSubscriptions.contains(LetterType.DEV_LETTER) && requestedTypes.contains(LetterType.EMPLOYEE_LETTER)) ||
-                (currentSubscriptions.contains(LetterType.EMPLOYEE_LETTER) && requestedTypes.contains(LetterType.DEV_LETTER))) {
+        // 개별 유형을 구독 중이고, ALL 또는 다른 개별 유형을 구독하려 할 때 ALL로 업데이트
+        if (!Collections.disjoint(currentSubscriptions, EnumSet.of(LetterType.DEV_LETTER, LetterType.EMPLOYEE_LETTER)) &&
+                !Collections.disjoint(requestedTypes, EnumSet.of(LetterType.ALL, LetterType.DEV_LETTER, LetterType.EMPLOYEE_LETTER))) {
             requestedTypes = List.of(LetterType.ALL);
             existingSubscriptions.forEach(subscriptionRepository::delete);
         }
 
         return processSubscriptions(member, requestedTypes);
     }
+
 
     private List<SubscriptionResponse> processSubscriptions(Member member, List<LetterType> requestedTypes) throws ApiException {
         List<SubscriptionResponse> responses = new ArrayList<>();
