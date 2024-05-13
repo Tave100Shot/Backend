@@ -23,7 +23,9 @@ public class NewsletterSchedulingService {
     private final NewsletterRepository newsletterRepository;
     private final EmailSenderService emailSenderService;
 
-    @Scheduled(initialDelay = 60000, fixedDelay = 5000)
+    // 격주 월요일 오전 8시에 전송
+    @Scheduled(cron = "0 0 8 ? * MON/2")
+    //@Scheduled(initialDelay = 60000, fixedDelay = 5000)
     public void sendNewsletters() {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
         Map<LetterType, Newsletter> latestNewslettersByType = fetchLatestNewslettersByType();

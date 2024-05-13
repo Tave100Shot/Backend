@@ -24,11 +24,12 @@ public class MemberService {
         Member currentMember = getCurrentMember();
         Member findMember = memberRepository.findByIdActivated(currentMember.getId());
 
-        boolean isEmailChanged = !updateInfo.getGitEmail().equals(findMember.getGitEmail());
+        String newGitEmail = updateInfo.getGitEmail();
+        boolean isEmailChanged = (newGitEmail != null && !newGitEmail.equals(findMember.getGitEmail()));
 
         if (isEmailChanged) {
             // 이메일 변경시 이메일 인증 상태 및 구독 상태 재설정
-            findMember.changeGitEmail(updateInfo.getGitEmail());
+            findMember.changeGitEmail(newGitEmail);
             // 모든 구독 정보 삭제
             subscriptionRepository.deleteAll(subscriptionRepository.findByMemberId(findMember.getId()));
         }
