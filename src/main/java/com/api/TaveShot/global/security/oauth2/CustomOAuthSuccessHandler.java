@@ -27,8 +27,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CustomOAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private MemberRepository memberRepository;
-    private JwtProvider jwtProvider;
+    private final MemberRepository memberRepository;
+    private final JwtProvider jwtProvider;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
