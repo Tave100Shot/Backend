@@ -75,7 +75,8 @@ public class SubscriptionService {
             memberRepository.save(member);
 
             try {
-                emailSenderService.sendEmail(member.getGitEmail(), "Subscribe successfully!~!", "You are now subscribed to " + type);
+                String htmlContent = getSubscriptionHtmlContent(type);
+                emailSenderService.sendEmail(member.getGitEmail(), "Subscribe Successfully!!", htmlContent);
             } catch (MessagingException e) {
                 throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
             }
@@ -83,6 +84,10 @@ public class SubscriptionService {
             responses.add(new SubscriptionResponse(type.getTitle(), member.getGitEmail(), member.getBojName()));
         }
         return responses;
+    }
+
+    private String getSubscriptionHtmlContent(LetterType type) {
+        return String.format("<html><body><h1>You are now subscribed to %s</h1></body></html>", type);
     }
 
     private void validateSubscription(Member member, LetterType letterType) throws ApiException {
