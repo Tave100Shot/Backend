@@ -24,11 +24,12 @@ public class NewsletterSchedulingService {
     private final EmailSenderService emailSenderService;
 
     // 격주 월요일 오전 8시에 전송
-    @Scheduled(cron = "0 0 8 ? * MON/2")
-    //@Scheduled(initialDelay = 60000, fixedDelay = 5000)
+    //@Scheduled(cron = "0 0 8 ? * MON/2")
+    @Scheduled(initialDelay = 60000, fixedDelay = 50000)
     public void sendNewsletters() {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
         Map<LetterType, Newsletter> latestNewslettersByType = fetchLatestNewslettersByType();
+        Set<Newsletter> newslettersToUpdate = new HashSet<>();
 
         for (Subscription sub : subscriptions) {
             List<LetterType> typesToSend = determineTypesToSend(sub.getLetterType());
@@ -42,14 +43,18 @@ public class NewsletterSchedulingService {
                                 newsletterToSend.getTitle(),
                                 newsletterToSend.getContent()
                         );
-                        newsletterToSend.letterSent();
-                        newsletterRepository.save(newsletterToSend);
+                        newslettersToUpdate.add(newsletterToSend);
                     } catch (MessagingException e) {
                         System.err.println("Failed to send email to: " + sub.getMember().getGitEmail() + "; Error: " + e.getMessage());
                         throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
                     }
                 }
             }
+        }
+
+        for (Newsletter newsletter : newslettersToUpdate) {
+            newsletter.letterSent();
+            newsletterRepository.save(newsletter);
         }
     }
 
@@ -70,4 +75,3 @@ public class NewsletterSchedulingService {
         }
     }
 }
-
