@@ -1,5 +1,6 @@
 package com.api.TaveShot.domain.newsletter.service;
 
+import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.client.domain.Subscription;
 import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.domain.newsletter.domain.Newsletter;
@@ -12,6 +13,7 @@ import jakarta.mail.MessagingException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.*;
 
@@ -22,6 +24,7 @@ public class NewsletterSchedulingService {
     private final SubscriptionRepository subscriptionRepository;
     private final NewsletterRepository newsletterRepository;
     private final EmailSenderService emailSenderService;
+    private final TemplateService templateService;
 
     // 격주 월요일 오전 8시에 전송
     //@Scheduled(cron = "0 0 8 ? * MON/2")
@@ -37,11 +40,12 @@ public class NewsletterSchedulingService {
             for (LetterType type : typesToSend) {
                 Newsletter newsletterToSend = latestNewslettersByType.get(type);
                 if (newsletterToSend != null && !newsletterToSend.isSent()) {
+                    String emailBody = templateService.renderHtmlContent(new NewsletterCreateRequest(newsletterToSend.getTitle(), newsletterToSend.getContent(), type.name()));
                     try {
                         emailSenderService.sendEmail(
                                 sub.getMember().getGitEmail(),
                                 newsletterToSend.getTitle(),
-                                newsletterToSend.getContent()
+                                emailBody
                         );
                         newslettersToUpdate.add(newsletterToSend);
                     } catch (MessagingException e) {
