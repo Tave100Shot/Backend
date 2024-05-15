@@ -23,12 +23,17 @@ public class EmailTokenService {
     public String createEmailToken() {
         Member currentMember = getCurrentMember();
 
+        if (currentMember.isEmailVerified()) {
+            throw new ApiException(ErrorType._EMAIL_ALREADY_VERIFIED);
+        }
+
         String receiverEmail = currentMember.getGitEmail();
 
         // JWT 토큰을 생성하고 만료 시간 설정
         String jwtToken = jwtProvider.generateJwtTokenForEmail(String.valueOf(currentMember.getId()));
 
-        String url = "http://localhost:8081/api/email/verify?token=" + jwtToken;
+        String url = "http://43.203.64.45:8080/api/email/verify?token=" + jwtToken;
+        //String url = "http://localhost:8081/api/email/verify?token=" + jwtToken;
         String htmlContent = getHtmlContent(url);
 
         try {
