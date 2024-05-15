@@ -65,6 +65,13 @@ public class SubscriptionService {
     private List<SubscriptionResponse> processSubscriptions(Member member, List<LetterType> requestedTypes) throws ApiException {
         List<SubscriptionResponse> responses = new ArrayList<>();
         for (LetterType type : requestedTypes) {
+            boolean hasGitEmail = member.getGitEmail() != null;
+            boolean hasBojName = member.getBojName() != null;
+
+            if (!hasGitEmail || !hasBojName) {
+                throw new ApiException(ErrorType._EMAIL_OR_NICKNAME_NOT_FOUND);
+            }
+
             validateSubscription(member, type);
 
             Subscription subscription = Subscription.builder()
@@ -83,9 +90,17 @@ public class SubscriptionService {
                 throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
             }
 
-            responses.add(new SubscriptionResponse(type.getTitle(), member.getGitEmail(), member.getBojName()));
+            responses.add(createSubscriptionResponse(member, type));
         }
         return responses;
+    }
+
+    private SubscriptionResponse createSubscriptionResponse(Member member, LetterType type) {
+        return new SubscriptionResponse(
+                type.getTitle(),
+                member.getGitEmail(),
+                member.getBojName()
+        );
     }
 
     private String getSubscriptionHtmlContent(LetterType type) throws ApiException {

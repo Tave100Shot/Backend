@@ -5,6 +5,7 @@ import static com.api.TaveShot.global.util.SecurityUtil.*;
 
 import com.api.TaveShot.domain.Member.domain.Member;
 import com.api.TaveShot.domain.Member.dto.request.MemberUpdateInfo;
+import com.api.TaveShot.domain.Member.dto.response.MemberResponse;
 import com.api.TaveShot.domain.Member.editor.MemberEditor;
 import com.api.TaveShot.domain.Member.repository.MemberRepository;
 import com.api.TaveShot.domain.newsletter.client.repository.SubscriptionRepository;
@@ -39,6 +40,15 @@ public class MemberService {
         findMember.changeBojInfo(memberEditor);
         return currentMember.getId();
 
+    }
+
+    @Transactional
+    public MemberResponse getMemberInfo(Long memberId) {
+        Member member = memberRepository.findByIdActivated(memberId);
+        return new MemberResponse(
+                member.getGitEmail(),
+                member.getBojName()
+        );
     }
 
     private MemberEditor getMemberEditor(MemberUpdateInfo updateInfo, Member member) {

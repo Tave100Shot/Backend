@@ -1,8 +1,11 @@
 package com.api.TaveShot.domain.Member.controller;
 
+import com.api.TaveShot.domain.Member.domain.Member;
 import com.api.TaveShot.domain.Member.dto.request.MemberUpdateInfo;
+import com.api.TaveShot.domain.Member.dto.response.MemberResponse;
 import com.api.TaveShot.domain.Member.service.MemberService;
 import com.api.TaveShot.global.success.SuccessResponse;
+import com.api.TaveShot.global.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,5 +32,12 @@ public class MemberController {
     public SuccessResponse<Long> updateMemberDetails(@RequestBody MemberUpdateInfo updateInfo) {
         Long memberId = memberService.updateMemberDetails(updateInfo);
         return new SuccessResponse<>(memberId);
+    }
+
+    @GetMapping("/info")
+    public SuccessResponse<MemberResponse> getMemberInfo() {
+        Member currentMember = SecurityUtil.getCurrentMember();
+        MemberResponse response = memberService.getMemberInfo(currentMember.getId());
+        return new SuccessResponse<>(response);
     }
 }
