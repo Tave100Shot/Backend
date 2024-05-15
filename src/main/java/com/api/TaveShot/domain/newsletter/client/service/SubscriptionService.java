@@ -15,6 +15,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,7 +62,6 @@ public class SubscriptionService {
         return processSubscriptions(member, requestedTypes);
     }
 
-
     private List<SubscriptionResponse> processSubscriptions(Member member, List<LetterType> requestedTypes) throws ApiException {
         List<SubscriptionResponse> responses = new ArrayList<>();
         for (LetterType type : requestedTypes) {
@@ -86,8 +88,28 @@ public class SubscriptionService {
         return responses;
     }
 
-    private String getSubscriptionHtmlContent(LetterType type) {
-        return String.format("<html><body><h1>You are now subscribed to %s</h1></body></html>", type);
+    private String getSubscriptionHtmlContent(LetterType type) throws ApiException {
+        String fileName;
+        switch (type) {
+            case DEV_LETTER:
+                fileName = "src/main/resources/templates/dev_subscription_success.html";
+                break;
+            case EMPLOYEE_LETTER:
+                fileName = "src/main/resources/templates/employee_subscription_success.html";
+                break;
+            case ALL:
+                fileName = "src/main/resources/templates/all_subscription_success.html";
+                break;
+            default:
+                throw new ApiException(ErrorType._TEMPLATE_READ_FAILED);
+        }
+
+        try {
+            String template = new String(Files.readAllBytes(Paths.get(fileName)));
+            return template.replace("{{letterType}}", type.toString());
+        } catch (IOException e) {
+            throw new ApiException(ErrorType._TEMPLATE_READ_FAILED);
+        }
     }
 
     private void validateSubscription(Member member, LetterType letterType) throws ApiException {

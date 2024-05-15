@@ -14,7 +14,7 @@ public class TemplateService {
 
     public String renderHtmlContent(NewsletterCreateRequest request) {
         Context context = new Context();
-        context.setVariable("title", request.title() + " - " + request.letterType());
+        context.setVariable("title", request.letterType() + " - " + request.title());
         context.setVariable("content", request.content());
         return templateEngine.process("newsletter", context);
     }
