@@ -10,14 +10,10 @@ import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.api.TaveShot.global.util.SecurityUtil;
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +23,6 @@ import java.util.stream.Collectors;
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
-    private final EmailSenderService emailSenderService;
     private final MemberRepository memberRepository;
 
     public List<SubscriptionResponse> subscribe(SubscriptionRequest request) throws ApiException {
@@ -83,13 +78,6 @@ public class SubscriptionService {
             member.subscribed();
             memberRepository.save(member);
 
-            try {
-                String htmlContent = getSubscriptionHtmlContent(type);
-                emailSenderService.sendEmail(member.getGitEmail(), "Subscribe Successfully!!", htmlContent);
-            } catch (MessagingException e) {
-                throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
-            }
-
             responses.add(createSubscriptionResponse(member, type));
         }
         return responses;
@@ -101,30 +89,6 @@ public class SubscriptionService {
                 member.getGitEmail(),
                 member.getBojName()
         );
-    }
-
-    private String getSubscriptionHtmlContent(LetterType type) throws ApiException {
-        String fileName;
-        switch (type) {
-            case DEV_LETTER:
-                fileName = "src/main/resources/templates/dev_subscription_success.html";
-                break;
-            case EMPLOYEE_LETTER:
-                fileName = "src/main/resources/templates/employee_subscription_success.html";
-                break;
-            case ALL:
-                fileName = "src/main/resources/templates/all_subscription_success.html";
-                break;
-            default:
-                throw new ApiException(ErrorType._TEMPLATE_READ_FAILED);
-        }
-
-        try {
-            String template = new String(Files.readAllBytes(Paths.get(fileName)));
-            return template.replace("{{letterType}}", type.toString());
-        } catch (IOException e) {
-            throw new ApiException(ErrorType._TEMPLATE_READ_FAILED);
-        }
     }
 
     private void validateSubscription(Member member, LetterType letterType) throws ApiException {

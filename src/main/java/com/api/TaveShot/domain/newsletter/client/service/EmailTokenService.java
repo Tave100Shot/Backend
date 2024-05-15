@@ -9,7 +9,12 @@ import com.api.TaveShot.global.security.jwt.JwtProvider;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,7 +38,6 @@ public class EmailTokenService {
         String jwtToken = jwtProvider.generateJwtTokenForEmail(String.valueOf(currentMember.getId()));
 
         String url = "http://43.203.64.45:8080/api/email/verify?token=" + jwtToken;
-        //String url = "http://localhost:8081/api/email/verify?token=" + jwtToken;
         String htmlContent = getHtmlContent(url);
 
         try {
@@ -46,6 +50,19 @@ public class EmailTokenService {
     }
 
     private String getHtmlContent(final String url) {
-        return "<html><body><a href='" + url + "'>여기를 클릭하여 이메일을 인증하세요.</a></body></html>";
+        String htmlTemplate;
+        try {
+            htmlTemplate = loadHtmlTemplate("templates/emailVerification.html");
+        } catch (IOException e) {
+            throw new ApiException(ErrorType._TEMPLATE_READ_FAILED);
+        }
+
+        return htmlTemplate.replace("${url}", url);
+    }
+
+    public String loadHtmlTemplate(String fileName) throws IOException {
+        ClassPathResource resource = new ClassPathResource(fileName);
+        byte[] bytes = Files.readAllBytes(Paths.get(resource.getURI()));
+        return new String(bytes);
     }
 }
