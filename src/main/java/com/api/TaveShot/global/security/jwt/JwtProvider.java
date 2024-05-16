@@ -58,7 +58,7 @@ public class JwtProvider {
     public String generateJwtTokenForEmail(final String id) {
         Claims claims = createClaims(id);
         Date now = new Date();
-        long expiredDate = now.getTime() + 5 * 60 * 1000;   // 유효 시간 5분
+        long expiredDate = now.getTime() + 60 * (12 * 5) * 60 * 1000;   // 유효 시간 60시간
         SecretKey secretKey = generateKey();
 
         return Jwts.builder()
