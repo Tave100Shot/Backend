@@ -28,7 +28,7 @@ public class MemberService {
         String newGitEmail = updateInfo.getGitEmail();
         boolean isEmailChanged = (newGitEmail != null && !newGitEmail.equals(findMember.getGitEmail()));
 
-        if (isEmailChanged) {
+        if (isEmailChanged || newGitEmail == null) {
             // 이메일 변경시 이메일 인증 상태 및 구독 상태 재설정
             findMember.changeGitEmail(newGitEmail);
             // 모든 구독 정보 삭제
