@@ -33,6 +33,10 @@ public class EmailTokenService {
 
         String receiverEmail = currentMember.getGitEmail();
 
+        if (receiverEmail == null || receiverEmail.isEmpty()) {
+            throw new ApiException(ErrorType._EMAIL_NOT_FOUND);
+        }
+
         // JWT 토큰을 생성하고 만료 시간 설정
         String jwtToken = jwtProvider.generateJwtTokenForEmail(String.valueOf(currentMember.getId()));
 
