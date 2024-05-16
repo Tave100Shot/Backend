@@ -2,6 +2,7 @@ package com.api.TaveShot.domain.newsletter.admin.controller;
 
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterPagingResponse;
+import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterRecentResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterSingleResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterUpdateRequest;
 import com.api.TaveShot.domain.newsletter.admin.service.AdminNewsletterService;
@@ -55,6 +56,11 @@ public class AdminNewsletterController {
     ) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         return new SuccessResponse<>(adminNewsletterService.getPaging(inputCategory, containWord, pageable));
+    }
+
+    @GetMapping
+    public SuccessResponse<NewsletterRecentResponse> getRecentNewsletter() {
+        return new SuccessResponse<>(adminNewsletterService.getRecent());
     }
 
 

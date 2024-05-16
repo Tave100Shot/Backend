@@ -2,6 +2,7 @@ package com.api.TaveShot.domain.newsletter.admin.service;
 
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterPagingResponse;
+import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterRecentResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterSingleResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterUpdateRequest;
 import com.api.TaveShot.domain.newsletter.admin.editor.NewsletterEditor;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminNewsletterService {
 
     private final NewsletterRepository newsletterRepository;
+    private static final Long LIMIT_VALUE = 6L;
 
     @Transactional
     public Long register(final NewsletterCreateRequest request) {
@@ -36,6 +38,15 @@ public class AdminNewsletterService {
     public NewsletterSingleResponse findById(final Long newsletterId) {
         Newsletter findNewsletter = newsletterRepository.findByIdActivated(newsletterId);
         return NewsletterSingleResponse.from(findNewsletter);
+    }
+
+    public NewsletterRecentResponse getRecent() {
+        List<Newsletter> newsletters = newsletterRepository.findRecent6(LIMIT_VALUE);
+        List<NewsletterSingleResponse> singleResponses = newsletters.stream()
+                .map(NewsletterSingleResponse::from)
+                .toList();
+
+        return NewsletterRecentResponse.from(singleResponses);
     }
 
     public NewsletterPagingResponse getPaging(final String inputLetterType, final String containWord, final Pageable pageable) {
