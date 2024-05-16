@@ -61,12 +61,12 @@ public class AdminNewsletterController {
         return new SuccessResponse<>(adminNewsletterService.getPaging(inputCategory, containWord, pageable));
     }
 
-    @GetMapping
+    @GetMapping("/recent")
     public SuccessResponse<NewsletterRecentResponse> getRecentNewsletter() {
         return new SuccessResponse<>(adminNewsletterService.getRecent());
     }
 
-    @GetMapping
+    @GetMapping("/byDate")
     public SuccessResponse<NewsletterDateResponse> getNewsletterByDate(
             @Parameter(description = "요청할 년도", required = false, example = "2024")
             @RequestParam(required = false) final Integer year,
