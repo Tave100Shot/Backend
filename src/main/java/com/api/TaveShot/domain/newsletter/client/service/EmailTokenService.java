@@ -7,14 +7,13 @@ import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.api.TaveShot.global.security.jwt.JwtProvider;
 import jakarta.mail.MessagingException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -62,7 +61,10 @@ public class EmailTokenService {
 
     public String loadHtmlTemplate(String fileName) throws IOException {
         ClassPathResource resource = new ClassPathResource(fileName);
-        byte[] bytes = Files.readAllBytes(Paths.get(resource.getURI()));
-        return new String(bytes);
+        try (InputStream inputStream = resource.getInputStream()) {
+            byte[] bytes = inputStream.readAllBytes();
+            return new String(bytes, StandardCharsets.UTF_8);
+        }
     }
+
 }
