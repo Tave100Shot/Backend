@@ -13,6 +13,7 @@ import jakarta.mail.MessagingException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.*;
@@ -28,11 +29,12 @@ public class NewsletterSchedulingService {
 
     // 격주 월요일 오전 8시에 전송
     //@Scheduled(cron = "0 0 8 ? * MON/2")
+
+    @Transactional
     @Scheduled(initialDelay = 60000, fixedDelay = 50000)
     public void sendNewsletters() {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
         Map<LetterType, Newsletter> latestNewslettersByType = fetchLatestNewslettersByType();
-        Set<Newsletter> newslettersToUpdate = new HashSet<>();
 
         for (Subscription sub : subscriptions) {
             List<LetterType> typesToSend = determineTypesToSend(sub.getLetterType());
@@ -40,14 +42,9 @@ public class NewsletterSchedulingService {
             for (LetterType type : typesToSend) {
                 Newsletter newsletterToSend = latestNewslettersByType.get(type);
                 if (newsletterToSend != null && !newsletterToSend.isSent()) {
-                    String emailBody = templateService.renderHtmlContent(new NewsletterCreateRequest(newsletterToSend.getTitle(), newsletterToSend.getContent(), type.name()));
                     try {
-                        emailSenderService.sendEmail(
-                                sub.getMember().getGitEmail(),
-                                newsletterToSend.getTitle(),
-                                emailBody
-                        );
-                        newslettersToUpdate.add(newsletterToSend);
+                        sendEmailForNewsletter(sub, newsletterToSend);
+                        newsletterToSend.letterSent();  // 변경 감지가 자동으로 업데이트 처리
                     } catch (MessagingException e) {
                         System.err.println("Failed to send email to: " + sub.getMember().getGitEmail() + "; Error: " + e.getMessage());
                         throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
@@ -56,10 +53,6 @@ public class NewsletterSchedulingService {
             }
         }
 
-        for (Newsletter newsletter : newslettersToUpdate) {
-            newsletter.letterSent();
-            newsletterRepository.save(newsletter);
-        }
     }
 
     private Map<LetterType, Newsletter> fetchLatestNewslettersByType() {
@@ -77,5 +70,10 @@ public class NewsletterSchedulingService {
         } else {
             return Collections.singletonList(subscribedType);
         }
+    }
+
+    private void sendEmailForNewsletter(Subscription sub, Newsletter newsletterToSend) throws MessagingException {
+        String emailBody = templateService.renderHtmlContent(new NewsletterCreateRequest(newsletterToSend.getTitle(), newsletterToSend.getContent(), newsletterToSend.getLetterType().name()));
+        emailSenderService.sendEmail(sub.getMember().getGitEmail(), newsletterToSend.getTitle(), emailBody);
     }
 }

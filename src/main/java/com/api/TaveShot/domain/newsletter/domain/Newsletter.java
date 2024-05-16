@@ -56,6 +56,6 @@ public class Newsletter extends BaseEntity {
     }
 
     public void letterSent() {
-        this.sent = true;
+        sent = true;
     }
 }
