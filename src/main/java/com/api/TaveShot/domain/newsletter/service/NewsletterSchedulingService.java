@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.util.*;
 
@@ -27,32 +26,39 @@ public class NewsletterSchedulingService {
     private final EmailSenderService emailSenderService;
     private final TemplateService templateService;
 
+    @Transactional
+    @Scheduled(initialDelay = 60000, fixedDelay = 86400000) // 테스트용 스케줄러
     // 격주 월요일 오전 8시에 전송
     //@Scheduled(cron = "0 0 8 ? * MON/2")
-
-    @Transactional
-    @Scheduled(initialDelay = 60000, fixedDelay = 50000)
     public void sendNewsletters() {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
         Map<LetterType, Newsletter> latestNewslettersByType = fetchLatestNewslettersByType();
 
-        for (Subscription sub : subscriptions) {
-            List<LetterType> typesToSend = determineTypesToSend(sub.getLetterType());
-
-            for (LetterType type : typesToSend) {
-                Newsletter newsletterToSend = latestNewslettersByType.get(type);
-                if (newsletterToSend != null && !newsletterToSend.isSent()) {
-                    try {
-                        sendEmailForNewsletter(sub, newsletterToSend);
-                        newsletterToSend.letterSent();  // 변경 감지가 자동으로 업데이트 처리
-                    } catch (MessagingException e) {
-                        System.err.println("Failed to send email to: " + sub.getMember().getGitEmail() + "; Error: " + e.getMessage());
-                        throw new ApiException(ErrorType._EMAIL_SEND_FAILED);
-                    }
+        for (LetterType type : latestNewslettersByType.keySet()) {
+            Newsletter newsletterToSend = latestNewslettersByType.get(type);
+            if (newsletterToSend != null && !newsletterToSend.isSent()) {
+                boolean allEmailsSent = sendEmailsToAllSubscribers(subscriptions, newsletterToSend);
+                if (allEmailsSent) {
+                    newsletterToSend.letterSent();
+                    newsletterRepository.save(newsletterToSend);
                 }
             }
         }
+    }
 
+    private boolean sendEmailsToAllSubscribers(List<Subscription> subscriptions, Newsletter newsletterToSend) {
+        boolean allEmailsSent = true;
+        for (Subscription sub : subscriptions) {
+            if (canSend(sub.getLetterType(), newsletterToSend.getLetterType())) {
+                try {
+                    sendEmailForNewsletter(sub, newsletterToSend);
+                } catch (MessagingException e) {
+                    System.err.println("Failed to send email to: " + sub.getMember().getGitEmail() + "; Error: " + e.getMessage());
+                    allEmailsSent = false;
+                }
+            }
+        }
+        return allEmailsSent;
     }
 
     private Map<LetterType, Newsletter> fetchLatestNewslettersByType() {
@@ -64,16 +70,17 @@ public class NewsletterSchedulingService {
         return latestNewslettersByType;
     }
 
-    private List<LetterType> determineTypesToSend(LetterType subscribedType) {
+    private boolean canSend(LetterType subscribedType, LetterType newsletterType) {
         if (subscribedType == LetterType.ALL) {
-            return Arrays.asList(LetterType.DEV_LETTER, LetterType.EMPLOYEE_LETTER);
-        } else {
-            return Collections.singletonList(subscribedType);
+            return newsletterType == LetterType.DEV_LETTER || newsletterType == LetterType.EMPLOYEE_LETTER;
         }
+        return subscribedType == newsletterType;
     }
 
     private void sendEmailForNewsletter(Subscription sub, Newsletter newsletterToSend) throws MessagingException {
-        String emailBody = templateService.renderHtmlContent(new NewsletterCreateRequest(newsletterToSend.getTitle(), newsletterToSend.getContent(), newsletterToSend.getLetterType().name()));
-        emailSenderService.sendEmail(sub.getMember().getGitEmail(), newsletterToSend.getTitle(), emailBody);
+        NewsletterCreateRequest request = new NewsletterCreateRequest(newsletterToSend.getTitle(), newsletterToSend.getContent(), newsletterToSend.getLetterType().name());
+        String htmlContent = templateService.getHtmlContent(templateService.getTemplateNameByLetterType(newsletterToSend.getLetterType()), request);
+        String recipientEmail = sub.getMember().getGitEmail();
+        emailSenderService.sendEmail(recipientEmail, newsletterToSend.getTitle(), htmlContent);
     }
 }
