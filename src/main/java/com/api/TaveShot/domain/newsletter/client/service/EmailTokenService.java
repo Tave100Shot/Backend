@@ -7,13 +7,14 @@ import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.api.TaveShot.global.security.jwt.JwtProvider;
 import jakarta.mail.MessagingException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class EmailTokenService {
         String jwtToken = jwtProvider.generateJwtTokenForEmail(String.valueOf(currentMember.getId()));
 
         String url = "http://43.203.64.45:8080/api/email/verify?token=" + jwtToken;
-        String htmlContent = getHtmlContent(url);
+        String htmlContent = getHtmlContent(currentMember.getGitEmail(), currentMember.getBojName(), url);
 
         try {
             emailService.sendEmail(receiverEmail, "이메일 인증", htmlContent);
@@ -52,7 +53,7 @@ public class EmailTokenService {
         return jwtToken;
     }
 
-    private String getHtmlContent(final String url) {
+    private String getHtmlContent(final String gitEmail, final String bojName, final String url) {
         String htmlTemplate;
         try {
             htmlTemplate = loadHtmlTemplate("templates/emailVerification.html");
@@ -60,7 +61,11 @@ public class EmailTokenService {
             throw new ApiException(ErrorType._TEMPLATE_READ_FAILED);
         }
 
-        return htmlTemplate.replace("${url}", url);
+        htmlTemplate = htmlTemplate.replace("${gitEmail}", gitEmail);
+        htmlTemplate = htmlTemplate.replace("${bojName}", bojName);
+        htmlTemplate = htmlTemplate.replace("${url}", url);
+
+        return htmlTemplate;
     }
 
     public String loadHtmlTemplate(String fileName) throws IOException {
@@ -70,5 +75,4 @@ public class EmailTokenService {
             return new String(bytes, StandardCharsets.UTF_8);
         }
     }
-
 }
