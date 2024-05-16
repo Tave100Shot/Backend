@@ -14,4 +14,6 @@ public interface NewsletterRepositoryCustom {
                                Pageable pageable);
 
     List<Newsletter> findRecent6(Long LIMIT_VALUE);
+
+    List<Newsletter> findByYearAndMonth(int year, int month);
 }

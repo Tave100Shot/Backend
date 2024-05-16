@@ -1,6 +1,7 @@
 package com.api.TaveShot.domain.newsletter.admin.controller;
 
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterCreateRequest;
+import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterDateResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterPagingResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterRecentResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterSingleResponse;
@@ -8,6 +9,7 @@ import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterUpdateRequest;
 import com.api.TaveShot.domain.newsletter.admin.service.AdminNewsletterService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import io.swagger.v3.oas.annotations.Parameter;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,8 +41,9 @@ public class AdminNewsletterController {
 
 
     @GetMapping("/{newsletterId}")
-    public SuccessResponse<NewsletterSingleResponse> getSingleNewsletter(@Parameter(description = "조회할 뉴스레터의 ID", required = true, example = "1")
-                                                                         @PathVariable final Long newsletterId) {
+    public SuccessResponse<NewsletterSingleResponse> getSingleNewsletter(
+            @Parameter(description = "조회할 뉴스레터의 ID", required = true, example = "1")
+            @PathVariable final Long newsletterId) {
         return new SuccessResponse<>(adminNewsletterService.findById(newsletterId));
     }
 
@@ -61,6 +64,25 @@ public class AdminNewsletterController {
     @GetMapping
     public SuccessResponse<NewsletterRecentResponse> getRecentNewsletter() {
         return new SuccessResponse<>(adminNewsletterService.getRecent());
+    }
+
+    @GetMapping
+    public SuccessResponse<NewsletterDateResponse> getNewsletterByDate(
+            @Parameter(description = "요청할 년도", required = false, example = "2024")
+            @RequestParam(required = false) final Integer year,
+
+            @Parameter(description = "요청할 월", required = false, example = "5")
+            @RequestParam(required = false) final Integer month
+    ) {
+        if (year == null || month == null) {
+            LocalDate now = LocalDate.now();
+            int currentYear = now.getYear();
+            int currentMonth = now.getMonthValue();
+
+            return new SuccessResponse<>(adminNewsletterService.getNewsletterByDate(currentYear, currentMonth));
+        }
+
+        return new SuccessResponse<>(adminNewsletterService.getNewsletterByDate(year, month));
     }
 
 

@@ -9,6 +9,7 @@ import com.api.TaveShot.global.exception.ErrorType;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +56,18 @@ public class NewsletterRepositoryImpl implements NewsletterRepositoryCustom {
                 )
                 .limit(limit)
                 .orderBy(newsletter.id.desc())
+                .fetch();
+    }
+
+    @Override
+    public List<Newsletter> findByYearAndMonth(int year, int month) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.plusMonths(1);  // 다음 달 1일
+
+        return jpaQueryFactory.selectFrom(newsletter)
+                .where(
+                        newsletter.createdDate.goe(startDate.atStartOfDay()),
+                        newsletter.createdDate.lt(endDate.atStartOfDay()))
                 .fetch();
     }
 

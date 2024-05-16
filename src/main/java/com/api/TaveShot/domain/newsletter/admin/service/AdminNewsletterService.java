@@ -1,6 +1,7 @@
 package com.api.TaveShot.domain.newsletter.admin.service;
 
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterCreateRequest;
+import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterDateResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterPagingResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterRecentResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterSingleResponse;
@@ -42,11 +43,15 @@ public class AdminNewsletterService {
 
     public NewsletterRecentResponse getRecent() {
         List<Newsletter> newsletters = newsletterRepository.findRecent6(LIMIT_VALUE);
-        List<NewsletterSingleResponse> singleResponses = newsletters.stream()
-                .map(NewsletterSingleResponse::from)
-                .toList();
+        List<NewsletterSingleResponse> singleResponses = entitiesToDtos(newsletters);
 
         return NewsletterRecentResponse.from(singleResponses);
+    }
+
+    private List<NewsletterSingleResponse> entitiesToDtos(final List<Newsletter> newsletters) {
+        return newsletters.stream()
+                .map(NewsletterSingleResponse::from)
+                .toList();
     }
 
     public NewsletterPagingResponse getPaging(final String inputLetterType, final String containWord, final Pageable pageable) {
@@ -59,9 +64,7 @@ public class AdminNewsletterService {
         Page<Newsletter> newsletterPage = newsletterRepository.getPaging(letterTypes, containWord, pageable);
 
         List<Newsletter> newsletters = newsletterPage.getContent();
-        List<NewsletterSingleResponse> singleResponses = newsletters.stream()
-                .map(NewsletterSingleResponse::from)
-                .toList();
+        List<NewsletterSingleResponse> singleResponses = entitiesToDtos(newsletters);
 
         NewsletterPagingResponse newsletterPagingResponse = NewsletterPagingResponse.of(singleResponses, newsletterPage.getTotalPages(),
                 newsletterPage.getTotalElements(), newsletterPage.isFirst(), newsletterPage.isLast());
@@ -112,5 +115,13 @@ public class AdminNewsletterService {
 
         findNewsletter.edit(editor);
         return newsletterId;
+    }
+
+    public NewsletterDateResponse getNewsletterByDate(final Integer year, final Integer month) {
+        List<Newsletter> newsletters = newsletterRepository.findByYearAndMonth(year, month);
+
+        List<NewsletterSingleResponse> singleResponses = entitiesToDtos(newsletters);
+        NewsletterDateResponse response = NewsletterDateResponse.of(singleResponses, year, month);
+        return response;
     }
 }
