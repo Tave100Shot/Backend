@@ -9,6 +9,7 @@ import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterUpdateRequest;
 import com.api.TaveShot.domain.newsletter.admin.service.AdminNewsletterService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Newsletter Admin API", description = "뉴스레터 관리자 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/newsletter")
