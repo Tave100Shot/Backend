@@ -27,9 +27,10 @@ public class NewsletterSchedulingService {
     private final TemplateService templateService;
 
     @Transactional
-    @Scheduled(initialDelay = 60000, fixedDelay = 86400000) // 테스트용 스케줄러
+    //@Scheduled(initialDelay = 60000, fixedDelay = 86400000) // 테스트용 스케줄러
+    //@Scheduled(cron = "0 40 12 ? * FRI")// 테스트용 스케줄러
     // 격주 월요일 오전 8시에 전송
-    //@Scheduled(cron = "0 0 8 ? * MON/2")
+    @Scheduled(cron = "0 0 8 ? * MON/2")
     public void sendNewsletters() {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
         Map<LetterType, Newsletter> latestNewslettersByType = fetchLatestNewslettersByType();
