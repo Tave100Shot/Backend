@@ -51,6 +51,8 @@ public class SecurityConfig {
                                         , "/api/health"
                                         , "/api/v1/search/**"
                                         , "/api/compile/**"
+                                        ,"/api/email/verify/**"
+                                        ,"/api/newsletter/**"
                                 ).permitAll()
 
                                 .requestMatchers("/api/admin/**").hasAnyRole(Role.MANAGER.name())

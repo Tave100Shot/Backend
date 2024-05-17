@@ -12,4 +12,8 @@ public interface NewsletterRepositoryCustom {
 
     Page<Newsletter> getPaging(List<LetterType> letterTypes, String containWord,
                                Pageable pageable);
+
+    List<Newsletter> findRecent6(Long LIMIT_VALUE);
+
+    List<Newsletter> findByYearAndMonth(int year, int month);
 }

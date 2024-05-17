@@ -4,8 +4,6 @@ import com.api.TaveShot.domain.base.BaseEntity;
 import com.api.TaveShot.domain.newsletter.admin.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.admin.editor.NewsletterEditor;
 import com.api.TaveShot.domain.newsletter.admin.editor.NewsletterEditor.NewsletterEditorBuilder;
-import com.api.TaveShot.domain.post.post.editor.PostEditor;
-import com.api.TaveShot.domain.post.post.editor.PostEditor.PostEditorBuilder;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,6 +31,7 @@ public class Newsletter extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private LetterType letterType;
+    private boolean sent;
 
     public static Newsletter from(final NewsletterCreateRequest request) {
         String inputType = request.letterType();
@@ -54,6 +53,9 @@ public class Newsletter extends BaseEntity {
     public void edit(NewsletterEditor newsletterEditor) {
         title = newsletterEditor.getTitle();
         content = newsletterEditor.getContent();
+    }
 
+    public void letterSent() {
+        sent = true;
     }
 }

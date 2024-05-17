@@ -31,12 +31,15 @@ public class Member extends BaseEntity {
     private String gitName;
     private String profileImageUrl;
     private String bojName;
+    private boolean isSubscribed;
+    private boolean emailVerified;
+
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     private Tier tier = Tier.BEGINNER;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     public String tierName() {
@@ -46,12 +49,30 @@ public class Member extends BaseEntity {
     public MemberEditorBuilder toEditor() {
         return MemberEditor.builder()
                 .bojName(bojName)
-                .tier(tier);
+                .tier(tier)
+                .gitEmail(gitEmail);
     }
 
     public void changeBojInfo(MemberEditor memberEditor) {
         this.bojName = memberEditor.getBojName();
         this.tier = memberEditor.getTier();
+        this.gitEmail = memberEditor.getGitEmail();
     }
+
+    public void emailVerifiedSuccess() {
+        this.emailVerified = true;
+    }
+
+    public void subscribed() {
+        this.isSubscribed = true;
+    }
+
+
+    public void changeGitEmail(String newgitEmail) {
+        this.gitEmail = newgitEmail;
+        this.emailVerified = false;
+        this.isSubscribed = false;
+    }
+
 }
 

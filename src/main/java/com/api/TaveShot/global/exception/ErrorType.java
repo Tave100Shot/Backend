@@ -88,12 +88,29 @@ public enum ErrorType {
     _COMPILE_PROBLEM_NOT_FOUND(NOT_FOUND, "PROBLEM_4040", "요청한 문제 번호를 찾을 수 없습니다."),
     _SUBMIT_PAGE_NOT_FOUND(NOT_FOUND, "COMPILE_4040", "아직 정답이 준비 되지 않아 코드를 제출할 수 없습니다."),
     _PROBLEM_CONVERSION_ERROR(INTERNAL_SERVER_ERROR, "PROBLEM_5002", "문제 정보 변환 중 오류가 발생했습니다."),
-
     _ACCESS_DENIED(FORBIDDEN, "ACCESS_4031", "권한이 없습니다."),
+
+    // ------------------------------------------ NewsLetter ------------------------------------------
+    _SUBSCRIPTION_ALREADY_EXIST(NOT_FOUND, "LETTER_4040", "이미 구독 중인 이메일과 구독 유형입니다."),
     LETTER_TYPE_NOT_FOUND(NOT_FOUND, "LETTER_4041", "뉴스레터 타입이 잘못됐습니다."),
-    NEWSLETTER_NOT_FOUND(NOT_FOUND, "LETTER_4042", "뉴스레터를 찾을 수 없습니다.");
+    NEWSLETTER_NOT_FOUND(NOT_FOUND, "LETTER_4042", "뉴스레터를 찾을 수 없습니다."),
+    _EMAIL_OR_NICKNAME_NOT_FOUND(NOT_FOUND,"LETTER_4043", "이메일 혹은 닉네임이 등록되어 있지 않습니다."),
+    _INVALID_INPUT(BAD_REQUEST,"LETTER_4044", "gitEmail과 bojName은 null일 수 없습니다."),
 
+    // ---------------------------------------------- Email ---------------------------------------------
+    _INVALID_VERIFICATION_LINK(BAD_REQUEST,"EAMIL4040","유효하지 않은 인증 링크입니다."),
+    _EMAIL_NOT_VERIFIED(BAD_REQUEST,"EAMIL4041","인증되지 않은 이메일입니다."),
+    _INVALID_EMAIL_TOKEN(BAD_REQUEST,"EAMIL4042","유효하지 않은 이메일 토큰입니다."),
+    _EMAIL_ALREADY_VERIFIED(BAD_REQUEST,"EAMIL4043","이메일 인증이 이미 완료됐습니다."),
+    _EMAIL_NOT_FOUND(NOT_FOUND, "EAMIL4044","이메일을 찾을 수 없습니다." ),
+    _EXPIRED_EMAIL_TOKEN(UNAUTHORIZED,"EAMIL4010","메일 토큰 유효기간이 만료됐습니다." ),
+    _EMAIL_SEND_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5000","메일 전송에 실패했습니다." ),
+    _TEMPLATE_READ_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5001","템플릿 변환에 실패했습니다." ),
 
+    // ---------------------------------------------- static ---------------------------------------------
+    _STATIC_ERROR_RUNTIME_EXCEPTION(INTERNAL_SERVER_ERROR, "SERVER_500", "알 수 없는 서버 에러입니다.");
+
+    ;
     private final HttpStatus status;
     private final String errorCode;
     private final String message;

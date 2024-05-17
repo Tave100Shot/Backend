@@ -1,7 +1,7 @@
 package com.api.TaveShot.global.security.jwt;
 
 import com.api.TaveShot.global.exception.ApiException;
-import com.api.TaveShot.global.security.oauth2.CustomAuthenticationFailureHandler;
+import com.api.TaveShot.global.security.oauth2.CustomAuthenticationEntryPoint;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final CustomAuthenticationFailureHandler failureHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response,
@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // token을 활용하여 유저 정보 검증
                 jwtProvider.getAuthenticationFromToken(jwtToken);
              } catch (ApiException e) {
-                failureHandler.onAuthenticationFailure(request, response, new InsufficientAuthenticationException(e.getMessage(), e));
+                authenticationEntryPoint.commence(request, response, new AuthenticationException(e.getMessage(), e) {});
                 return;
             }
         }
@@ -67,9 +67,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/api/health") ||
                 requestURI.startsWith("/favicon.ico") ||
                 requestURI.startsWith("/api/v1/search/**") ||
+                requestURI.startsWith("/api/newsletter/**") ||
                 requestURI.startsWith("/api/compile/**") ||
                 requestURI.startsWith("/v3/api-docs/**") ||
                 requestURI.startsWith("/error") ||
+                requestURI.startsWith("/api/email/verify") ||
                 requestURI.startsWith("/login/**");
     }
 }

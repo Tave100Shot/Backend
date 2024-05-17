@@ -8,6 +8,7 @@ import org.springframework.util.StringUtils;
 @Getter
 @RequiredArgsConstructor
 public class MemberEditor {
+    private final String gitEmail;
     private final String bojName;
     private final Tier tier;
 
@@ -16,10 +17,18 @@ public class MemberEditor {
     }
 
     public static class MemberEditorBuilder {
+        private String gitEmail;
         private String bojName;
         private Tier tier;
 
         MemberEditorBuilder(){
+        }
+
+        public MemberEditor.MemberEditorBuilder gitEmail(final String gitEmail) {
+            if (StringUtils.hasText(gitEmail)) {
+                this.gitEmail = gitEmail;
+            }
+            return this;
         }
 
         public MemberEditor.MemberEditorBuilder bojName(final String bojName) {
@@ -37,7 +46,7 @@ public class MemberEditor {
         }
 
         public MemberEditor build() {
-            return new MemberEditor(bojName, tier);
+            return new MemberEditor(gitEmail, bojName, tier);
         }
     }
 }

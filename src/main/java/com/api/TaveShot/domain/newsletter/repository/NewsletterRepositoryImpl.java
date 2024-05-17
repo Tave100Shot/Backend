@@ -6,8 +6,10 @@ import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.domain.newsletter.domain.Newsletter;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -26,11 +28,15 @@ public class NewsletterRepositoryImpl implements NewsletterRepositoryCustom {
                 .selectFrom(newsletter)
                 .where(
                         newsletter.id.eq(newsletterId),
-                        newsletter.deleted.isFalse()
+                        getActivated()
                 )
                 .fetchOne();
         return Optional.ofNullable(findNewsletter)
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
+    }
+
+    private BooleanExpression getActivated() {
+        return newsletter.deleted.isFalse();
     }
 
     @Override
@@ -41,6 +47,30 @@ public class NewsletterRepositoryImpl implements NewsletterRepositoryCustom {
         return new PageImpl<>(pageContent, pageable, count);
     }
 
+    @Override
+    public List<Newsletter> findRecent6(final Long limit) {
+        return jpaQueryFactory
+                .selectFrom(newsletter)
+                .where(
+                        getActivated()
+                )
+                .limit(limit)
+                .orderBy(newsletter.id.desc())
+                .fetch();
+    }
+
+    @Override
+    public List<Newsletter> findByYearAndMonth(int year, int month) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.plusMonths(1);  // 다음 달 1일
+
+        return jpaQueryFactory.selectFrom(newsletter)
+                .where(
+                        newsletter.createdDate.goe(startDate.atStartOfDay()),
+                        newsletter.createdDate.lt(endDate.atStartOfDay()))
+                .fetch();
+    }
+
     private List<Newsletter> getPageContent(final List<LetterType> letterTypes, final String containWord,
                                             final Pageable pageable) {
         return jpaQueryFactory
@@ -48,7 +78,8 @@ public class NewsletterRepositoryImpl implements NewsletterRepositoryCustom {
                 .where(
                         newsletter.content.contains(containWord),
                         newsletter.title.contains(containWord),
-                        newsletter.letterType.in(letterTypes)
+                        newsletter.letterType.in(letterTypes),
+                        getActivated()
                 )
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -63,7 +94,8 @@ public class NewsletterRepositoryImpl implements NewsletterRepositoryCustom {
                 .where(
                         newsletter.content.contains(containWord),
                         newsletter.title.contains(containWord),
-                        newsletter.letterType.in(letterTypes)
+                        newsletter.letterType.in(letterTypes),
+                        getActivated()
                 )
                 .fetchOne();
     }

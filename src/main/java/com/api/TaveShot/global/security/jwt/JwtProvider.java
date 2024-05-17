@@ -38,6 +38,9 @@ public class JwtProvider {
     @Value("${jwt.secret.key}")
     private String SECRET_KEY;
 
+    @Value("${jwt.expiration.time.minutes}")
+    private int emailTokenExpirationMinutes;
+
     public String generateJwtToken(final String id) {
         Claims claims = createClaims(id);
         Date now = new Date();
@@ -49,6 +52,21 @@ public class JwtProvider {
                 .setIssuedAt(now)
                 .setExpiration(new Date(expiredDate))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateJwtTokenForEmail(final String id) {
+        Claims claims = createClaims(id);
+        Date now = new Date();
+        long expiredDate = now.getTime() + 60 * (12 * 5) * 60 * 1000;   // 유효 시간 60시간
+        SecretKey secretKey = generateKey();
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(new Date(expiredDate))
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .signWith(generateKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 

@@ -46,7 +46,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private Member registerNewMember(final Long gitId, final String gitLoginId,
                                      final String gitEmail, final String profileImageUrl) {
-        Role userRole = getRole(gitEmail);
+        Role userRole = getGitLoginId(gitLoginId);
 
         Member newMember = Member.builder()
                 .gitId(gitId)
@@ -59,9 +59,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return memberRepository.save(newMember);
     }
 
-    private Role getRole(final String gitEmail) {
+    private Role getGitLoginId(final String gitLoginId) {
         // 이하 관리자 계정 추가 등록
-        if (gitEmail.equals("dlawnsgud427@naver.com")) {
+        if (gitLoginId.equals("toychip")) {
+            return Role.MANAGER;
+        }
+        if (gitLoginId.equals("thwjddlqslek")) {
             return Role.MANAGER;
         }
         return Role.CLIENT;
