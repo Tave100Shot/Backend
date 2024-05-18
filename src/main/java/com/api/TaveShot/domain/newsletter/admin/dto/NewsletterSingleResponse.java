@@ -30,7 +30,7 @@ public record NewsletterSingleResponse(
 
     public static NewsletterSingleResponse from(final Newsletter newsletter) {
         LocalDateTime modifiedDate = newsletter.getLastModifiedDate();
-        String writtenTime = TimeUtil.formatCreatedDate(modifiedDate);
+        String writtenTime = TimeUtil.formatNewsletter(modifiedDate);
 
         return new NewsletterSingleResponse(
                 newsletter.getId(), newsletter.getTitle(),
