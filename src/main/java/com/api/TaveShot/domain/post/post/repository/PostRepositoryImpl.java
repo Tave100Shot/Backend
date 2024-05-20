@@ -5,8 +5,6 @@ import static com.api.TaveShot.domain.Member.domain.QMember.member;
 import static com.api.TaveShot.domain.post.comment.domain.QComment.comment;
 import static com.api.TaveShot.domain.post.image.domain.QImage.image;
 import static com.api.TaveShot.domain.post.post.domain.QPost.post;
-import static com.api.TaveShot.global.constant.OauthConstant.MAX_PAGE_NUMBER;
-import static com.api.TaveShot.global.constant.OauthConstant.MAX_PAGE_SIZE;
 
 import com.api.TaveShot.domain.post.post.domain.Post;
 import com.api.TaveShot.domain.post.post.domain.PostTier;
@@ -16,14 +14,13 @@ import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.StringUtils;
 
 @RequiredArgsConstructor
@@ -33,11 +30,10 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     @Override
     public Page<PostResponse> searchPagePost(final PostSearchCondition condition, final Pageable pageable) {
-
         List<PostResponse> postResponses = getSearchPageContent(condition, pageable);
-        JPAQuery<Long> searchPageCount = getSearchPageCount(condition);
+        Long searchPageCount = getSearchPageCount(condition);
 
-        return PageableExecutionUtils.getPage(postResponses, pageable, searchPageCount::fetchOne);
+        return new PageImpl<>(postResponses, pageable, searchPageCount);
     }
 
     @Override
@@ -46,9 +42,9 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .select(post)
                 .distinct()
                 .from(post)
-                .leftJoin(post.images, image)
+                .leftJoin(post.images, image).fetchJoin()
                 .leftJoin(post.comments, comment)
-                .leftJoin(post.member, member)
+                .leftJoin(post.member, member).fetchJoin()
                 .where(post.id.eq(id))
                 .fetchJoin()
                 .orderBy(post.id.desc())
@@ -59,8 +55,6 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     }
 
     private List<PostResponse> getSearchPageContent(final PostSearchCondition condition, final Pageable pageable) {
-        validatePaging(condition, pageable);
-
         List<Post> posts = jpaQueryFactory
                 .select(post)
                 .distinct()
@@ -71,9 +65,8 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         containContent(condition.getContent()),
                         containWriter(condition.getWriter())
                 )
-                .leftJoin(post.images, image)
+                .leftJoin(post.images, image).fetchJoin()
                 .leftJoin(post.comments, comment)
-                .fetchJoin()
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .orderBy(post.id.desc())
@@ -81,42 +74,6 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
         List<PostResponse> postResponseList = toPostResponses(posts);
         return postResponseList;
-    }
-
-    private void validatePaging(PostSearchCondition condition, Pageable pageable) {
-
-        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
-            throw new ApiException(ErrorType._PAGING_INVALID_PAGE_SIZE);
-        }
-
-        if (pageable.getPageNumber() > MAX_PAGE_NUMBER) {
-            throw new ApiException(ErrorType._PAGING_INVALID_PAGE_NUMBER);
-        }
-
-        long totalPosts = safeFetchCount(getSearchPageCount(condition));
-        long expectedStartIndex = pageable.getOffset();
-        long expectedEndIndex = expectedStartIndex + pageable.getPageSize() - 1;
-
-        long lastPageIndex = (totalPosts - 1) / pageable.getPageSize(); // 마지막 페이지 인덱스 계산
-
-        // 마지막 페이지인 경우, expectedEndIndex는 totalPosts - 1 이하이어야 함
-        if (pageable.getPageNumber() >= lastPageIndex) {
-            expectedEndIndex = Math.min(expectedEndIndex, totalPosts - 1);
-        }
-
-        // 데이터 범위 초과 여부 확인
-        if (expectedEndIndex > totalPosts) {
-            System.out.println("PostRepositoryImpl.validatePaging.error");
-            throw new ApiException(ErrorType._PAGING_INVALID_DATA_SIZE);
-        }
-    }
-
-    private long safeFetchCount(JPAQuery<Long> query) {
-        Long count = query.fetchOne();
-        if (count != null) {
-            return count;
-        }
-        return 0L;
     }
 
     private BooleanExpression judgeTier(final PostTier postTierEnum) {
@@ -147,11 +104,12 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private List<PostResponse> toPostResponses(List<Post> posts) {
         return posts.stream()
                 .map(p -> new PostResponse(p.getId(), p.getTitle(), p.getContent(), p.getWriter(), p.getViewCount(),
-                        p.getComments().size(), p.getMemberId(),p.getMember().getProfileImageUrl(), p.getCreatedDate(), p.getImages()))
+                        p.getComments().size(), p.getMemberId(), p.getMember().getProfileImageUrl(), p.getCreatedDate(),
+                        p.getImages()))
                 .toList();
     }
 
-    private JPAQuery<Long> getSearchPageCount(final PostSearchCondition condition) {
+    private Long getSearchPageCount(final PostSearchCondition condition) {
         return jpaQueryFactory
                 .select(Wildcard.count)
                 .from(post)
@@ -160,7 +118,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         containTitle(condition.getTitle()),
                         containContent(condition.getContent()),
                         containWriter(condition.getWriter())
-                );
+                ).fetchOne();
     }
 
 }
