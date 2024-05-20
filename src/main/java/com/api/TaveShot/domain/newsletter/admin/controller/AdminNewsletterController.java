@@ -10,6 +10,7 @@ import com.api.TaveShot.domain.newsletter.admin.service.AdminNewsletterService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -35,8 +36,12 @@ public class AdminNewsletterController {
     private final AdminNewsletterService adminNewsletterService;
 
     @PostMapping
-    public SuccessResponse<Long> registerNewsletter(@io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "뉴스레터 생성 요청 데이터", required = true) @RequestBody NewsletterCreateRequest request) {
+    public SuccessResponse<Long> registerNewsletter(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "뉴스레터 생성 요청 데이터", required = true
+            )
+            @Valid @RequestBody NewsletterCreateRequest request
+    ) {
         Long newsletterId = adminNewsletterService.register(request);
         return new SuccessResponse<>(newsletterId);
     }

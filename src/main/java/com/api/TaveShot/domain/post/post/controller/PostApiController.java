@@ -8,13 +8,14 @@ import com.api.TaveShot.domain.post.post.dto.response.PostResponse;
 import com.api.TaveShot.domain.post.post.service.PostService;
 import com.api.TaveShot.global.success.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,9 +25,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** REST API Controller **/
 
 @Tag(name = "Post API", description = "등급별 게시판 API입니다.")
 @RequestMapping("/api")
@@ -69,8 +70,16 @@ public class PostApiController {
                             schema = @Schema(implementation = PostListResponse.class)))
     })
     @GetMapping("/post")
-    public SuccessResponse<PostListResponse> getPagePost(final @Validated @ModelAttribute PostSearchCondition condition,
-                                                         final Pageable pageable) {
+    public SuccessResponse<PostListResponse> getPagePost(
+            final @Validated @ModelAttribute PostSearchCondition condition,
+
+            @Parameter(description = "페이지 번호 (0부터 시작, 기본값 0)", example = "0")
+            @RequestParam(required = false, defaultValue = "0") final int page,
+
+            @Parameter(description = "페이지당 데이터 개수 (기본값 10)", example = "0")
+            @RequestParam(required = false, defaultValue = "10") final int size
+    ) {
+        PageRequest pageable = PageRequest.of(page, size);
         PostListResponse postListResponse = postService.searchPostPaging(condition, pageable);
         return new SuccessResponse<>(postListResponse);
     }
@@ -84,8 +93,10 @@ public class PostApiController {
                             schema = @Schema(implementation = Long.class)))
     })
     @PatchMapping("/post/{postId}")
-    public SuccessResponse<Long> edit(final @PathVariable Long postId,
-                                        final @ModelAttribute PostEditRequest request) {
+    public SuccessResponse<Long> edit(
+            final @PathVariable Long postId,
+            final @ModelAttribute PostEditRequest request
+    ) {
         postService.edit(postId, request);
         return new SuccessResponse<>(postId);
     }
