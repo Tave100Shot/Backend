@@ -3,12 +3,16 @@ package com.api.TaveShot.domain.Member.domain;
 import com.api.TaveShot.domain.Member.editor.MemberEditor;
 import com.api.TaveShot.domain.Member.editor.MemberEditor.MemberEditorBuilder;
 import com.api.TaveShot.domain.base.BaseEntity;
+import com.api.TaveShot.domain.newsletter.client.domain.Subscription;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +26,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long gitId;
@@ -34,13 +39,15 @@ public class Member extends BaseEntity {
     private boolean isSubscribed;
     private boolean emailVerified;
 
-
     @Builder.Default
     @Enumerated(EnumType.STRING)
     private Tier tier = Tier.BEGINNER;
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Subscription subscription;
 
     public String tierName() {
         return tier.name();
@@ -68,8 +75,8 @@ public class Member extends BaseEntity {
     }
 
 
-    public void changeGitEmail(String newgitEmail) {
-        this.gitEmail = newgitEmail;
+    public void changeGitEmail(String newGitEmail) {
+        this.gitEmail = newGitEmail;
         this.emailVerified = false;
         this.isSubscribed = false;
     }
