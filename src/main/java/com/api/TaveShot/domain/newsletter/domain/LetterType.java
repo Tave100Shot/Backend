@@ -13,6 +13,7 @@ public enum LetterType {
     DEV_LETTER("개발 뉴스레터", 0),
     EMPLOYEE_LETTER("구인구직 뉴스레터", 1),
     ALL("위 레터 모두", 2),
+    NONE("구독하지 않음", 3)
     ;
 
     private final String title;
