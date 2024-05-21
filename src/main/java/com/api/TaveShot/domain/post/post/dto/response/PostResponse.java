@@ -1,5 +1,6 @@
 package com.api.TaveShot.domain.post.post.dto.response;
 
+import com.api.TaveShot.domain.Member.domain.Tier;
 import com.api.TaveShot.domain.post.comment.dto.response.CommentListResponse;
 import com.api.TaveShot.domain.post.image.converter.ImageConverter;
 import com.api.TaveShot.domain.post.image.domain.Image;
@@ -20,6 +21,7 @@ public class PostResponse {
     private String title;
     private String content;
     private String writer;
+    private Tier writerTier;
     private int view;
     private int commentCount;
     private Long writerId;
@@ -29,12 +31,13 @@ public class PostResponse {
     private CommentListResponse commentListResponse;
 
     @Builder
-    public PostResponse(Long postId, String title, String content, String writer, Integer view,
+    public PostResponse(Long postId, String title, String content, String writer, Tier tier, Integer view,
                         Integer commentCount, Long writerId, String writerProfileImgUrl, LocalDateTime createdDate, List<Image> images) {
         this.postId = postId;
         this.title = title;
         this.content = content;
         this.writer = writer;
+        this.writerTier = tier;
         this.view = view;
         this.commentCount = commentCount;
         this.writerId = writerId;
