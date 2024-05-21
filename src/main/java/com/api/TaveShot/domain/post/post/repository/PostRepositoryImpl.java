@@ -67,8 +67,9 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 )
                 .leftJoin(post.images, image).fetchJoin()
                 .leftJoin(post.comments, comment)
-                .limit(pageable.getPageSize())
+                .leftJoin(post.member, member).fetchJoin()
                 .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .orderBy(post.id.desc())
                 .fetch();
 
@@ -103,7 +104,8 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     private List<PostResponse> toPostResponses(List<Post> posts) {
         return posts.stream()
-                .map(p -> new PostResponse(p.getId(), p.getTitle(), p.getContent(), p.getWriter(), p.getViewCount(),
+                .map(p -> new PostResponse(p.getId(), p.getTitle(), p.getContent(), p.getWriter(),
+                        p.getMember().getTier(), p.getViewCount(),
                         p.getComments().size(), p.getMemberId(), p.getMember().getProfileImageUrl(), p.getCreatedDate(),
                         p.getImages()))
                 .toList();
