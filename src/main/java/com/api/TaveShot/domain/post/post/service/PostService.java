@@ -111,7 +111,7 @@ public class PostService {
         Post post = getPostFetchJoin(postId);
         PostTier postTier = post.getPostTier();
 
-        validateAuthority(postTier);
+//        validateAuthority(postTier);
         addViewCount(post);
 
         CommentListResponse commentResponses = commentService.findComments(postId);
@@ -136,7 +136,7 @@ public class PostService {
         Page<PostResponse> postResponses = postRepository.searchPagePost(condition, pageable);
 
         PostTier postTier = condition.getPostTierEnum();
-        validateAuthority(postTier);
+//        validateAuthority(postTier);
 
         PostListResponse postListResponse = PostConverter.pageToPostListResponse(postResponses);
         return postListResponse;

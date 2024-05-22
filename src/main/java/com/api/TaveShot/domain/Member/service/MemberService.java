@@ -5,12 +5,17 @@ import static com.api.TaveShot.global.util.SecurityUtil.*;
 
 import com.api.TaveShot.domain.Member.domain.Member;
 import com.api.TaveShot.domain.Member.dto.request.MemberUpdateInfo;
-import com.api.TaveShot.domain.Member.dto.response.MemberResponse;
+import com.api.TaveShot.domain.Member.dto.response.MemberInfoResponse;
+import com.api.TaveShot.domain.Member.dto.response.MemberPagingResponse;
+import com.api.TaveShot.domain.Member.dto.response.MemberSingleResponse;
 import com.api.TaveShot.domain.Member.editor.MemberEditor;
 import com.api.TaveShot.domain.Member.repository.MemberRepository;
 import com.api.TaveShot.domain.newsletter.client.repository.SubscriptionRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -43,9 +48,9 @@ public class MemberService {
     }
 
     @Transactional
-    public MemberResponse getMemberInfo(Long memberId) {
+    public MemberInfoResponse getMemberInfo(Long memberId) {
         Member member = memberRepository.findByIdActivated(memberId);
-        return new MemberResponse(
+        return new MemberInfoResponse(
                 member.getGitEmail(),
                 member.getBojName()
         );
@@ -65,6 +70,29 @@ public class MemberService {
 
     public void save(Member member) {
         memberRepository.save(member);
+    }
+
+    public MemberPagingResponse getMemberPaging(
+            final String memberName, final String memberEmail, final Pageable pageable
+    ) {
+        Page<Member> memberPaging = memberRepository.getMemberPaging(memberName, memberEmail, pageable);
+        List<MemberSingleResponse> memberSingleResponses = memberPaging.stream()
+                .map(this::convert)
+                .toList();
+
+        MemberPagingResponse response = MemberPagingResponse.of(
+                memberSingleResponses, memberPaging.getTotalPages(),
+                memberPaging.getTotalElements(), memberPaging.isFirst(), memberPaging.isLast()
+        );
+
+        return response;
+    }
+
+    private MemberSingleResponse convert(final Member member) {
+        return MemberSingleResponse.of(
+                member.getBojName(), member.getSubscription().getLetterType(),
+                member.getGitEmail()
+        );
     }
 }
 
