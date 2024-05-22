@@ -96,6 +96,10 @@ public enum ErrorType {
     NEWSLETTER_NOT_FOUND(NOT_FOUND, "LETTER_4042", "뉴스레터를 찾을 수 없습니다."),
     _EMAIL_OR_NICKNAME_NOT_FOUND(NOT_FOUND,"LETTER_4043", "이메일 혹은 닉네임이 등록되어 있지 않습니다."),
     _INVALID_INPUT(BAD_REQUEST,"LETTER_4044", "gitEmail과 bojName은 null일 수 없습니다."),
+    _INVALID_LETTER_TYPE(BAD_REQUEST, "LETTER_4045","유효하지 뉴스레터 타입입니다."),
+
+    // ------------------------------------------ Event -----------------------------------------------
+    _EVENT_NOT_FOUND(NOT_FOUND,"EVENT_4040", "행사를 찾을 수 없습니다."),
 
     // ---------------------------------------------- Email ---------------------------------------------
     _INVALID_VERIFICATION_LINK(BAD_REQUEST,"EAMIL4040","유효하지 않은 인증 링크입니다."),
@@ -108,9 +112,10 @@ public enum ErrorType {
     _TEMPLATE_READ_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5001","템플릿 변환에 실패했습니다." ),
 
     // ---------------------------------------------- static ---------------------------------------------
-    _STATIC_ERROR_RUNTIME_EXCEPTION(INTERNAL_SERVER_ERROR, "SERVER_500", "알 수 없는 서버 에러입니다.");
-
+    _STATIC_ERROR_RUNTIME_EXCEPTION(INTERNAL_SERVER_ERROR, "SERVER_500", "알 수 없는 서버 에러입니다.")
     ;
+
+
     private final HttpStatus status;
     private final String errorCode;
     private final String message;
