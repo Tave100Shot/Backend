@@ -109,6 +109,11 @@ public class AdminEventService {
             }
         }
 
+        // 행사 시작 날짜 기준으로 정렬
+        for (List<Event> events : letterTypeEventsMap.values()) {
+            events.sort(Comparator.comparing(Event::getStartDate));
+        }
+
         // 뉴스레터 생성
         Long devNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.DEV_LETTER, startOfWeek);
         Long employeeNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.EMPLOYEE_LETTER, startOfWeek);
@@ -126,6 +131,8 @@ public class AdminEventService {
 
         String newsletterTitle = String.format("%s %d째주 %s Newsletter", month, weekOfMonth, letterType.toString());
         List<Event> events = letterTypeEventsMap.getOrDefault(letterType, Collections.emptyList());
+
+        events.sort(Comparator.comparing(Event::getStartDate));
 
         List<EventSingleResponse> eventDtos = events.stream()
                 .map(EventSingleResponse::from)
@@ -145,7 +152,7 @@ public class AdminEventService {
     }
 
     @Transactional
-    public void sendWeeklyNewsletter() throws MessagingException {
+    public void sendWeeklyNewsletter(LocalDate now) throws MessagingException {
         Map<LetterType, Long> newsletterIds = createWeeklyNewsletter();
 
         Newsletter devNewsletter = newsletterRepository.findById(newsletterIds.get(LetterType.DEV_LETTER))
@@ -153,8 +160,14 @@ public class AdminEventService {
         Newsletter employeeNewsletter = newsletterRepository.findById(newsletterIds.get(LetterType.EMPLOYEE_LETTER))
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
 
-        String devContent = templateService.renderHtmlContent(devNewsletter.getEvents().stream().map(EventSingleResponse::from).collect(Collectors.toList()), devNewsletter.getTitle(), "dev_newsletter.html");
-        String employeeContent = templateService.renderHtmlContent(employeeNewsletter.getEvents().stream().map(EventSingleResponse::from).collect(Collectors.toList()), employeeNewsletter.getTitle(), "employee_newsletter.html");
+        // 정렬된 이벤트 리스트 렌더링
+        List<EventSingleResponse> devEvents = devNewsletter.getEvents().stream().map(EventSingleResponse::from).collect(Collectors.toList());
+        devEvents.sort(Comparator.comparing(EventSingleResponse::startDate));
+        String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(), "dev_newsletter.html");
+
+        List<EventSingleResponse> employeeEvents = employeeNewsletter.getEvents().stream().map(EventSingleResponse::from).collect(Collectors.toList());
+        employeeEvents.sort(Comparator.comparing(EventSingleResponse::startDate));
+        String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(), "employee_newsletter.html");
 
         sendEmailsToSubscribers(devNewsletter, devContent);
         sendEmailsToSubscribers(employeeNewsletter, employeeContent);
@@ -180,14 +193,14 @@ public class AdminEventService {
         return subscribedType == newsletterType;
     }
 
-    @Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 7시에 실행
+    /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
     public void scheduledNewsletter() throws MessagingException {
         sendWeeklyNewsletter();
-    }
+    }*/
 
-    /*@Scheduled(cron = "0 0/1 * * * ?") // 테스트용
+    @Scheduled(cron = "0 0/1 * * * ?") // 테스트용
     public void scheduledNewsletter() throws MessagingException {
         sendWeeklyNewsletter(LocalDate.now());
-    }*/
+    }
 }
 
