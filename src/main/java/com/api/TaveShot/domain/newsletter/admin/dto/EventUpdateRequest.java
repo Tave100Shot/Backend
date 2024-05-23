@@ -20,7 +20,10 @@ public record EventUpdateRequest(
         LocalDate startDate,
 
         @Schema(description = "새 행사 종료 날짜", example = "2024-01-07")
-        LocalDate endDate
+        LocalDate endDate,
+
+        @Schema(description = "기간 숨김 여부", example = "true")
+        boolean hidePeriod
 
 ) {
 }

@@ -25,6 +25,9 @@ public record EventCreateRequest(
 
         @NotEmpty(message = "행사 종료 날짜는 비워둘 수 없습니다.")
         @Schema(description = "행사 종료 날짜", example = "2024-01-07")
-        LocalDate endDate
+        LocalDate endDate,
+
+        @Schema(description = "기간 숨김 여부", example = "true")
+        boolean hidePeriod
 ) {
 }

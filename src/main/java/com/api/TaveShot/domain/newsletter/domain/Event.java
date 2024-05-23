@@ -27,6 +27,8 @@ public class Event extends BaseEntity {
     private LocalDate startDate;
     private LocalDate endDate;
 
+    private boolean hidePeriod;
+
     @Enumerated(EnumType.STRING)
     private LetterType letterType;
 
@@ -42,6 +44,7 @@ public class Event extends BaseEntity {
                 .content(request.content())
                 .startDate(request.startDate())
                 .endDate(request.endDate())
+                .hidePeriod(request.hidePeriod())
                 .letterType(letterType)
                 .build();
     }
@@ -51,6 +54,7 @@ public class Event extends BaseEntity {
         content = eventEditor.getContent();
         startDate = eventEditor.getStartDate();
         endDate = eventEditor.getEndDate();
+        hidePeriod = eventEditor.isHidePeriod();
     }
 
     public EventEditor.EventEditorBuilder initEditor() {
@@ -58,6 +62,11 @@ public class Event extends BaseEntity {
                 .title(this.title)
                 .content(this.content)
                 .startDate(this.startDate)
-                .endDate(this.endDate);
+                .endDate(this.endDate)
+                .hidePeriod(this.hidePeriod);
+    }
+
+    public void hidePeriod(boolean hidePeriod) {
+        this.hidePeriod = hidePeriod;
     }
 }

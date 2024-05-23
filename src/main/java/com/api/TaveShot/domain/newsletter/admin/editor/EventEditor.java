@@ -14,6 +14,7 @@ public class EventEditor {
     private final String content;
     private final LocalDate startDate;
     private final LocalDate endDate;
+    private final boolean hidePeriod;
 
     public static EventEditorBuilder builder() {
         return new EventEditorBuilder();
@@ -25,6 +26,7 @@ public class EventEditor {
         private String content;
         private LocalDate startDate;
         private LocalDate endDate;
+        private boolean hidePeriod;
 
         EventEditorBuilder() {
         }
@@ -53,8 +55,13 @@ public class EventEditor {
             return this;
         }
 
+        public EventEditorBuilder hidePeriod(final boolean hidePeriod) {
+            this.hidePeriod = hidePeriod;
+            return this;
+        }
+
         public EventEditor build() {
-            return new EventEditor(title, content, startDate, endDate);
+            return new EventEditor(title, content, startDate, endDate, hidePeriod);
         }
     }
 }

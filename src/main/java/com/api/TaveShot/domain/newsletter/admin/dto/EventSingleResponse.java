@@ -30,7 +30,10 @@ public record EventSingleResponse(
         LocalDate endDate,
 
         @Schema(description = "작성 시간", example = "21.08.01 12:00")
-        String writtenTime
+        String writtenTime,
+
+        @Schema(description = "기간 표시 여부", example = "true or false")
+        boolean hidePeriod
 ) {
     public static EventSingleResponse from(final Event event) {
         LocalDateTime modifiedDate = event.getLastModifiedDate();
@@ -40,7 +43,7 @@ public record EventSingleResponse(
                 event.getId(), event.getTitle(),
                 event.getContent(), event.getLetterType(),
                 event.getStartDate(), event.getEndDate(),
-                writtenTime
+                writtenTime, event.isHidePeriod()
         );
     }
 }
