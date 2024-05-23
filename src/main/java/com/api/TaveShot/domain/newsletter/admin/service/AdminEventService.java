@@ -109,9 +109,9 @@ public class AdminEventService {
             }
         }
 
-        // 행사 시작 날짜 기준으로 정렬
+        // 행사 시작 날짜 기준으로 정렬, 시작 날짜가 같으면 종료 날짜 기준으로 정렬
         for (List<Event> events : letterTypeEventsMap.values()) {
-            events.sort(Comparator.comparing(Event::getStartDate));
+            events.sort(Comparator.comparing(Event::getStartDate).thenComparing(Event::getEndDate));
         }
 
         // 뉴스레터 생성
@@ -132,7 +132,7 @@ public class AdminEventService {
         String newsletterTitle = String.format("%s %d째주 %s Newsletter", month, weekOfMonth, letterType.toString());
         List<Event> events = letterTypeEventsMap.getOrDefault(letterType, Collections.emptyList());
 
-        events.sort(Comparator.comparing(Event::getStartDate));
+        events.sort(Comparator.comparing(Event::getStartDate).thenComparing(Event::getEndDate));
 
         List<EventSingleResponse> eventDtos = events.stream()
                 .map(EventSingleResponse::from)
@@ -160,13 +160,13 @@ public class AdminEventService {
         Newsletter employeeNewsletter = newsletterRepository.findById(newsletterIds.get(LetterType.EMPLOYEE_LETTER))
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
 
-        // 정렬된 이벤트 리스트 렌더링
+        // 정렬된 이벤트 리스트를 다시 렌더링
         List<EventSingleResponse> devEvents = devNewsletter.getEvents().stream().map(EventSingleResponse::from).collect(Collectors.toList());
-        devEvents.sort(Comparator.comparing(EventSingleResponse::startDate));
+        devEvents.sort(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate));
         String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(), "dev_newsletter.html");
 
         List<EventSingleResponse> employeeEvents = employeeNewsletter.getEvents().stream().map(EventSingleResponse::from).collect(Collectors.toList());
-        employeeEvents.sort(Comparator.comparing(EventSingleResponse::startDate));
+        employeeEvents.sort(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate));
         String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(), "employee_newsletter.html");
 
         sendEmailsToSubscribers(devNewsletter, devContent);
