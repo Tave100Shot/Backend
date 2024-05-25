@@ -4,39 +4,23 @@
     <meta charset="UTF-8">
     <title>백발백준 EMPLOYEE 뉴스레터</title>
 </head>
-<body>
-<style>
-    @media only screen and (max-width: 600px) {
-        .container {
-            width: 100% !important;
-        }
-        img {
-            width: 100%;
-        }
-        p {
-            font-size: 18px;
-        }
-    }
-</style>
-
-    <div style="font-family: Arial, sans-serif; background-color: #ffffff; margin: 0; padding: 0;">
-        <div class="container" style="background-color: #ffffff; width: 100%; max-width: 600px; margin: 10px auto; padding: 10px;">
-            <img src="https://github.com/Tave100Shot/.github/blob/a640415ac2feb57e704226acf6c659161b841d12/profile/img/%EB%B0%B1%EB%B0%9C_emp.png?raw=true" alt="Header Image" style="width: 100%; max-width: 600px; height: auto;">
-            <br>
-            <h1 th:text="${title}"></h1>
-            <div th:each="event : ${events}">
-                <h2 th:text="${event.title}"></h2>
-                <div th:if="${!event.hidePeriod}">
-                    <p><strong th:text="'기간: ' + ${event.startDate} + ' ~ ' + ${event.endDate}"></strong></p>
-                </div>
-                <p th:text="${event.content}"></p>
-                <br>
-            </div>
-            <p style="color: #666666; line-height: 1.6; font-size: 18px;">다음달에도 기대해주세요:)</p>
-            <br>
-            <a href="#" style="display: inline-block; padding: 7px 18px; background-color: #007BFF; color: #ffffff; text-decoration: none; border-radius: 7px;">백발백준 바로가기</a>
-            </div>
+<body style="font-family: Arial, sans-serif; background-color: #ffffff; margin: 0; padding: 0;">
+<div style="background-color: #ffffff; width: 100%; max-width: 800px; margin: 10px auto; padding: 10px;">
+    <img src="https://github.com/Tave100Shot/.github/blob/a640415ac2feb57e704226acf6c659161b841d12/profile/img/%EB%B0%B1%EB%B0%9C_emp.png?raw=true" alt="Header Image" style="width: 100%; max-width: 800px; height: auto;">
+    <br>
+    <h1 th:text="${title}"></h1>
+    <br>
+    <div th:each="event : ${events}">
+        <h2 th:text="${event.title}"></h2>
+        <div th:if="${!event.hidePeriod}">
+            <p><strong th:text="'기간: ' + ${event.startDate} + ' ~ ' + ${event.endDate}"></strong></p>
         </div>
+        <p th:text="${event.content}"></p>
+        <br>
     </div>
+    <p style="color: #000; line-height: 2.2; font-size: 18px;">다음 주에도 기대해주세요 :)</p>
+    <br>
+    <a href="#" style="display: inline-block; padding: 7px 18px; background-color: #007BFF; color: #ffffff; text-decoration: none; border-radius: 7px;">백발백준 바로가기</a>
+</div>
 </body>
 </html>
