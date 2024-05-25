@@ -91,16 +91,15 @@ public class AdminEventService {
     }
 
     @Transactional
-    public Map<LetterType, Long> createWeeklyNewsletter() {
-        LocalDate now = LocalDate.now();
-        LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
-        LocalDate endOfWeek = startOfWeek.plusDays(6);
+    public Map<LetterType, Long> createWeeklyNewsletter(LocalDate now) {
+        LocalDate startOfWeek = now.minusDays(7);
+        LocalDate endOfWeek = now;
 
         Map<LetterType, List<Event>> letterTypeEventsMap = new HashMap<>();
 
         // 이벤트 레터 타입에 따라 맵에 그룹화
         for (Event event : eventRepository.findAll()) {
-            if (!event.isDeleted() && event.getStartDate().isBefore(endOfWeek.plusDays(1)) && event.getEndDate().isAfter(startOfWeek.minusDays(1))) {
+            if (!event.isDeleted() && event.getStartDate().isBefore(endOfWeek.plusDays(1)) && event.getEndDate().isAfter(now)) {
                 LetterType letterType = event.getLetterType();
                 if (!letterTypeEventsMap.containsKey(letterType)) {
                     letterTypeEventsMap.put(letterType, new ArrayList<>());
@@ -115,8 +114,8 @@ public class AdminEventService {
         }
 
         // 뉴스레터 생성
-        Long devNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.DEV_LETTER, startOfWeek);
-        Long employeeNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.EMPLOYEE_LETTER, startOfWeek);
+        Long devNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.DEV_LETTER, now);
+        Long employeeNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.EMPLOYEE_LETTER, now);
 
         Map<LetterType, Long> newsletterIds = new HashMap<>();
         newsletterIds.put(LetterType.DEV_LETTER, devNewsletterId);
@@ -125,11 +124,11 @@ public class AdminEventService {
         return newsletterIds;
     }
 
-    private Long createNewsletterForLetterType(Map<LetterType, List<Event>> letterTypeEventsMap, LetterType letterType, LocalDate startOfWeek) {
-        int weekOfMonth = getWeekOfMonth(startOfWeek);
-        String month = getMonthInKorean(startOfWeek);
+    private Long createNewsletterForLetterType(Map<LetterType, List<Event>> letterTypeEventsMap, LetterType letterType, LocalDate now) {
+        int weekOfMonth = getWeekOfMonth(now);
+        String month = getMonthInKorean(now);
 
-        String newsletterTitle = String.format("%s %d째주 %s Newsletter", month, weekOfMonth, letterType.toString());
+        String newsletterTitle = String.format("%s %d째주 %s", month, weekOfMonth, letterType.toString());
         List<Event> events = letterTypeEventsMap.getOrDefault(letterType, Collections.emptyList());
 
         events.sort(Comparator.comparing(Event::getStartDate).thenComparing(Event::getEndDate));
@@ -153,7 +152,7 @@ public class AdminEventService {
 
     @Transactional
     public void sendWeeklyNewsletter(LocalDate now) throws MessagingException {
-        Map<LetterType, Long> newsletterIds = createWeeklyNewsletter();
+        Map<LetterType, Long> newsletterIds = createWeeklyNewsletter(now);
 
         Newsletter devNewsletter = newsletterRepository.findById(newsletterIds.get(LetterType.DEV_LETTER))
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
