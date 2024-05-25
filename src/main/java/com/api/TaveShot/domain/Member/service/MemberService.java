@@ -77,7 +77,7 @@ public class MemberService {
     ) {
         Page<Member> memberPaging = memberRepository.getMemberPaging(memberName, memberEmail, pageable);
         List<MemberSingleResponse> memberSingleResponses = memberPaging.stream()
-                .map(this::convert)
+                .map(MemberSingleResponse::from)
                 .toList();
 
         MemberPagingResponse response = MemberPagingResponse.of(
@@ -88,12 +88,6 @@ public class MemberService {
         return response;
     }
 
-    private MemberSingleResponse convert(final Member member) {
-        return MemberSingleResponse.of(
-                member.getBojName(), member.getSubscription().getLetterType(),
-                member.getGitEmail()
-        );
-    }
 }
 
 

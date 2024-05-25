@@ -7,6 +7,7 @@ import com.api.TaveShot.domain.newsletter.client.domain.QSubscription;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -20,14 +21,6 @@ import org.springframework.data.domain.Pageable;
 public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-
-    private static BooleanExpression eqEmail(final String memberEmail) {
-        return member.gitEmail.eq(memberEmail);
-    }
-
-    private static BooleanExpression eqBojName(final String memberBojName) {
-        return member.bojName.eq(memberBojName);
-    }
 
     @Override
     public Member findByIdActivated(final Long id) {
@@ -43,6 +36,20 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .orElseThrow(() -> new ApiException(ErrorType._USER_NOT_FOUND_DB));
     }
 
+    private BooleanExpression containsEmail(final String memberEmail) {
+        if (memberEmail == null || memberEmail.isEmpty()) {
+            return Expressions.TRUE; // 검색 조건이 없으면 항상 true
+        }
+        return member.gitEmail.contains(memberEmail);
+    }
+
+    private BooleanExpression containsBojName(final String memberBojName) {
+        if (memberBojName == null || memberBojName.isEmpty()) {
+            return Expressions.TRUE; // 검색 조건이 없으면 항상 true
+        }
+        return member.bojName.contains(memberBojName);
+    }
+
     @Override
     public Page<Member> getMemberPaging(final String searchBojName, final String searchEmail, final Pageable pageable) {
         List<Member> members = getMemberContent(searchBojName, searchEmail);
@@ -54,11 +61,11 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
     private List<Member> getMemberContent(final String memberBojName, final String memberEmail) {
         return queryFactory
                 .selectFrom(member)
+                .leftJoin(member.subscription, QSubscription.subscription).fetchJoin()
                 .where(
-                        eqBojName(memberBojName),
-                        eqEmail(memberEmail)
+                        containsBojName(memberBojName),
+                        containsEmail(memberEmail)
                 )
-                .leftJoin(QSubscription.subscription).fetchJoin()
                 .fetch();
     }
 
@@ -66,10 +73,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         return queryFactory
                 .select(Wildcard.count)
                 .from(member)
-                .leftJoin(QSubscription.subscription)   // .fetchJoin() // 카운트 쿼리이미르 패치조인 불필요
+                .leftJoin(member.subscription, QSubscription.subscription)
                 .where(
-                        eqBojName(memberBojName),
-                        eqEmail(memberEmail)
+                        containsBojName(memberBojName),
+                        containsEmail(memberEmail)
                 )
                 .fetchOne();
     }
