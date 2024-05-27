@@ -37,7 +37,13 @@ public record EventSingleResponse(
 ) {
     public static EventSingleResponse from(final Event event) {
         LocalDateTime modifiedDate = event.getLastModifiedDate();
-        String writtenTime = (modifiedDate != null) ? TimeUtil.formatNewsletter(modifiedDate) : "Unknown";
+        String writtenTime;
+
+        if (modifiedDate != null) {
+            writtenTime = TimeUtil.formatNewsletter(modifiedDate);
+        } else {
+            writtenTime = "Unknown";
+        }
 
         return new EventSingleResponse(
                 event.getId(), event.getTitle(),

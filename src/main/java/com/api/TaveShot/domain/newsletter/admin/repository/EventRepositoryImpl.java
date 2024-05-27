@@ -1,11 +1,9 @@
 package com.api.TaveShot.domain.newsletter.admin.repository;
 
 import com.api.TaveShot.domain.newsletter.domain.Event;
-import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +12,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static com.api.TaveShot.domain.newsletter.domain.QEvent.event;
-import static org.springframework.util.StringUtils.hasText;
 
 @RequiredArgsConstructor
 public class EventRepositoryImpl implements EventRepositoryCustom {
@@ -53,24 +50,4 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         return event.deleted.isFalse();
     }
 
-
-    private BooleanExpression containsInContentOrTitle(String containWord) {
-        if (hasText(containWord)) {
-            return event.content.contains(containWord)
-                    .or(event.title.contains(containWord));
-        }
-        return null;
-    }
-
-    private Long countQuery(final List<LetterType> letterTypes, final String containWord) {
-        return jpaQueryFactory
-                .select(Wildcard.count)
-                .from(event)
-                .where(
-                        containsInContentOrTitle(containWord),
-                        event.letterType.in(letterTypes),
-                        getActivated()
-                )
-                .fetchOne();
-    }
 }
