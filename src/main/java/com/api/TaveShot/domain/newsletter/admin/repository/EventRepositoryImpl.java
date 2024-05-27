@@ -50,4 +50,17 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         return event.deleted.isFalse();
     }
 
+
+    @Override
+    public List<Event> findEventsForNewsletter(LocalDate endOfWeek, LocalDate now) {
+        BooleanExpression isNotDeleted = event.deleted.isFalse();
+        BooleanExpression startDateBefore = event.startDate.before(endOfWeek.plusDays(1));
+        BooleanExpression endDateAfter = event.endDate.after(now);
+
+        return jpaQueryFactory.selectFrom(event)
+                .where(isNotDeleted.and(startDateBefore).and(endDateAfter))
+                .orderBy(event.startDate.asc(), event.endDate.asc())
+                .fetch();
+    }
+
 }

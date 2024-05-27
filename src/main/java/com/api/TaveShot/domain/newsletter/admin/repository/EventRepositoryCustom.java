@@ -10,4 +10,6 @@ public interface EventRepositoryCustom {
     Event findByIdActivated(final Long eventId);
 
     List<Event> findEventsByDate(LocalDate date);
+
+    List<Event> findEventsForNewsletter(LocalDate endOfWeek, LocalDate now);
 }

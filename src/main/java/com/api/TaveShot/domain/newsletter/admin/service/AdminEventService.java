@@ -95,25 +95,11 @@ public class AdminEventService {
     public Map<LetterType, Long> createWeeklyNewsletter(LocalDate endOfWeek) {
         LocalDate startOfWeek = endOfWeek.minusDays(7);
 
-        Map<LetterType, List<Event>> letterTypeEventsMap = new HashMap<>();
+        List<Event> events = eventRepository.findEventsForNewsletter(endOfWeek, startOfWeek);
 
-        // 이벤트 레터 타입에 따라 맵에 그룹화
-        for (Event event : eventRepository.findAll()) {
-            if (!event.isDeleted() && event.getStartDate().isBefore(endOfWeek.plusDays(1)) && event.getEndDate().isAfter(endOfWeek)) {
-                LetterType letterType = event.getLetterType();
-                if (!letterTypeEventsMap.containsKey(letterType)) {
-                    letterTypeEventsMap.put(letterType, new ArrayList<>());
-                }
-                letterTypeEventsMap.get(letterType).add(event);
-            }
-        }
+        Map<LetterType, List<Event>> letterTypeEventsMap = events.stream()
+                .collect(Collectors.groupingBy(Event::getLetterType));
 
-        // 행사 시작 날짜 기준으로 정렬, 시작 날짜가 같으면 종료 날짜 기준으로 정렬
-        for (List<Event> events : letterTypeEventsMap.values()) {
-            events.sort(Comparator.comparing(Event::getStartDate).thenComparing(Event::getEndDate));
-        }
-
-        // 뉴스레터 생성
         Long devNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.DEV_LETTER, endOfWeek);
         Long employeeNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.EMPLOYEE_LETTER, endOfWeek);
 
@@ -131,8 +117,6 @@ public class AdminEventService {
         String newsletterTitle = String.format("%s %d째주 %s", month, weekOfMonth, letterType.toString());
         List<Event> events = letterTypeEventsMap.getOrDefault(letterType, Collections.emptyList());
 
-        events.sort(Comparator.comparing(Event::getStartDate).thenComparing(Event::getEndDate));
-
         List<EventSingleResponse> eventDtos = events.stream()
                 .map(EventSingleResponse::from)
                 .toList();
@@ -145,9 +129,8 @@ public class AdminEventService {
                 events
         );
 
-        newsletterRepository.save(newsletter);
-
-        return newsletter.getId();
+        Newsletter savedNewsletter = newsletterRepository.save(newsletter);
+        return savedNewsletter.getId();
     }
 
     @Transactional
@@ -177,20 +160,12 @@ public class AdminEventService {
     }
 
     private void sendEmailsToSubscribers(Newsletter newsletter, String content) throws MessagingException {
-        List<Subscription> subscriptions = subscriptionRepository.findAll();
+        List<Subscription> subscriptions = subscriptionRepository.findAllByLetterType(newsletter.getLetterType());
         for (Subscription subscription : subscriptions) {
-            if (canSend(subscription.getLetterType(), newsletter.getLetterType())) {
-                emailSenderService.sendEmail(subscription.getMember().getGitEmail(), newsletter.getTitle(), content);
-            }
+            emailSenderService.sendEmail(subscription.getMember().getGitEmail(), newsletter.getTitle(), content);
         }
     }
 
-    private boolean canSend(LetterType subscribedType, LetterType newsletterType) {
-        if (subscribedType == LetterType.ALL) {
-            return newsletterType == LetterType.DEV_LETTER || newsletterType == LetterType.EMPLOYEE_LETTER;
-        }
-        return subscribedType == newsletterType;
-    }
 
     /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
     public void scheduledNewsletter() throws MessagingException {
@@ -202,3 +177,5 @@ public class AdminEventService {
         sendWeeklyNewsletter(LocalDate.now());
     }
 }
+
+
