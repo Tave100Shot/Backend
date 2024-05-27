@@ -10,6 +10,7 @@ import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.domain.newsletter.domain.Newsletter;
 import com.api.TaveShot.domain.newsletter.admin.repository.EventRepository;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterCreateRequest;
+import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterResponse;
 import com.api.TaveShot.domain.newsletter.letter.repository.NewsletterRepository;
 import com.api.TaveShot.domain.newsletter.letter.service.TemplateService;
 import com.api.TaveShot.global.exception.ApiException;
@@ -92,7 +93,7 @@ public class AdminEventService {
     }
 
     @Transactional
-    public Map<LetterType, Long> createWeeklyNewsletter(LocalDate endOfWeek) {
+    public NewsletterResponse createWeeklyNewsletter(LocalDate endOfWeek) {
         LocalDate startOfWeek = endOfWeek.minusDays(7);
 
         List<Event> events = eventRepository.findEventsForNewsletter(endOfWeek, startOfWeek);
@@ -103,11 +104,7 @@ public class AdminEventService {
         Long devNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.DEV_LETTER, endOfWeek);
         Long employeeNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.EMPLOYEE_LETTER, endOfWeek);
 
-        Map<LetterType, Long> newsletterIds = new HashMap<>();
-        newsletterIds.put(LetterType.DEV_LETTER, devNewsletterId);
-        newsletterIds.put(LetterType.EMPLOYEE_LETTER, employeeNewsletterId);
-
-        return newsletterIds;
+        return new NewsletterResponse(devNewsletterId, employeeNewsletterId);
     }
 
     private Long createNewsletterForLetterType(Map<LetterType, List<Event>> letterTypeEventsMap, LetterType letterType, LocalDate endOfWeek) {
@@ -135,19 +132,19 @@ public class AdminEventService {
 
     @Transactional
     public void sendWeeklyNewsletter(LocalDate endOfWeek) throws MessagingException {
-        Map<LetterType, Long> newsletterIds = createWeeklyNewsletter(endOfWeek);
+        NewsletterResponse newsletterResponse = createWeeklyNewsletter(endOfWeek);
 
-        Newsletter devNewsletter = newsletterRepository.findById(newsletterIds.get(LetterType.DEV_LETTER))
+        Newsletter devNewsletter = newsletterRepository.findById(newsletterResponse.devNewsletterId())
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
-        Newsletter employeeNewsletter = newsletterRepository.findById(newsletterIds.get(LetterType.EMPLOYEE_LETTER))
+        Newsletter employeeNewsletter = newsletterRepository.findById(newsletterResponse.employeeNewsletterId())
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
 
         // 정렬된 이벤트 리스트를 다시 렌더링
-        List<EventSingleResponse> devEvents = devNewsletter.getEvents().stream().map(EventSingleResponse::from).toList();
+        List<EventSingleResponse> devEvents = new ArrayList<>(devNewsletter.getEvents().stream().map(EventSingleResponse::from).toList());
         devEvents.sort(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate));
         String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(), "dev_newsletter.html");
 
-        List<EventSingleResponse> employeeEvents = employeeNewsletter.getEvents().stream().map(EventSingleResponse::from).toList();
+        List<EventSingleResponse> employeeEvents = new ArrayList<>(employeeNewsletter.getEvents().stream().map(EventSingleResponse::from).toList());
         employeeEvents.sort(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate));
         String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(), "employee_newsletter.html");
 
@@ -162,15 +159,15 @@ public class AdminEventService {
     private void sendEmailsToSubscribers(Newsletter newsletter, String content) throws MessagingException {
         List<Subscription> subscriptions = subscriptionRepository.findAllByLetterType(newsletter.getLetterType());
         for (Subscription subscription : subscriptions) {
-            emailSenderService.sendEmail(subscription.getMember().getGitEmail(), newsletter.getTitle(), content);
+            if (canSend(subscription.getLetterType(), newsletter.getLetterType())) {
+                emailSenderService.sendEmail(subscription.getMember().getGitEmail(), newsletter.getTitle(), content);
+            }
         }
     }
 
-
-    /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
-    public void scheduledNewsletter() throws MessagingException {
-        sendWeeklyNewsletter();
-    }*/
+    private boolean canSend(LetterType subscribedType, LetterType newsletterType) {
+        return subscribedType == LetterType.ALL || subscribedType == newsletterType;
+    }
 
     @Scheduled(cron = "0 0/1 * * * ?") // 테스트용
     public void scheduledNewsletter() throws MessagingException {
@@ -179,3 +176,7 @@ public class AdminEventService {
 }
 
 
+/*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
+    public void scheduledNewsletter() throws MessagingException {
+        sendWeeklyNewsletter();
+    }*/
