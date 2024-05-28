@@ -104,7 +104,12 @@ public class AdminEventService {
         Long devNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.DEV_LETTER, endOfWeek);
         Long employeeNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.EMPLOYEE_LETTER, endOfWeek);
 
-        return new NewsletterResponse(devNewsletterId, employeeNewsletterId);
+        Map<LetterType, Long> newsletterIds = Map.of(
+                LetterType.DEV_LETTER, devNewsletterId,
+                LetterType.EMPLOYEE_LETTER, employeeNewsletterId
+        );
+
+        return new NewsletterResponse(newsletterIds);
     }
 
     private Long createNewsletterForLetterType(Map<LetterType, List<Event>> letterTypeEventsMap, LetterType letterType, LocalDate endOfWeek) {
@@ -134,18 +139,22 @@ public class AdminEventService {
     public void sendWeeklyNewsletter(LocalDate endOfWeek) throws MessagingException {
         NewsletterResponse newsletterResponse = createWeeklyNewsletter(endOfWeek);
 
-        Newsletter devNewsletter = newsletterRepository.findById(newsletterResponse.devNewsletterId())
+        Newsletter devNewsletter = newsletterRepository.findById(newsletterResponse.newsletterIds().get(LetterType.DEV_LETTER))
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
-        Newsletter employeeNewsletter = newsletterRepository.findById(newsletterResponse.employeeNewsletterId())
+        Newsletter employeeNewsletter = newsletterRepository.findById(newsletterResponse.newsletterIds().get(LetterType.EMPLOYEE_LETTER))
                 .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
 
         // 정렬된 이벤트 리스트를 다시 렌더링
-        List<EventSingleResponse> devEvents = new ArrayList<>(devNewsletter.getEvents().stream().map(EventSingleResponse::from).toList());
-        devEvents.sort(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate));
+        List<EventSingleResponse> devEvents = new ArrayList<>(devNewsletter.getEvents().stream()
+                .map(EventSingleResponse::from)
+                .sorted(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate))
+                .collect(Collectors.toList()));
         String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(), "dev_newsletter.html");
 
-        List<EventSingleResponse> employeeEvents = new ArrayList<>(employeeNewsletter.getEvents().stream().map(EventSingleResponse::from).toList());
-        employeeEvents.sort(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate));
+        List<EventSingleResponse> employeeEvents = new ArrayList<>(employeeNewsletter.getEvents().stream()
+                .map(EventSingleResponse::from)
+                .sorted(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate))
+                .collect(Collectors.toList()));
         String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(), "employee_newsletter.html");
 
         sendEmailsToSubscribers(devNewsletter, devContent);

@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,8 +32,8 @@ public class Event extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private LetterType letterType;
 
-    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<NewsletterEvent> newsletterEvents = new HashSet<>();
+    @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
+    private List<Newsletter> newsletters = new ArrayList<>();
 
     public static Event from(final EventCreateRequest request) {
         String inputType = request.letterType();
