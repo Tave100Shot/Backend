@@ -26,17 +26,6 @@ public class NewsletterController {
 
     private final NewsletterService newsletterService;
 
-    @PostMapping
-    public SuccessResponse<Long> registerNewsletter(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "뉴스레터 생성 요청 데이터", required = true
-            )
-            @Valid @RequestBody NewsletterCreateRequest request
-    ) {
-        Long newsletterId = newsletterService.register(request);
-        return new SuccessResponse<>(newsletterId);
-    }
-
     @GetMapping("/{newsletterId}")
     public SuccessResponse<NewsletterSingleResponse> getSingleNewsletter(
             @Parameter(description = "조회할 뉴스레터의 ID", required = true, example = "1")
