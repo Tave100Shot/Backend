@@ -6,11 +6,7 @@ import com.api.TaveShot.domain.newsletter.admin.dto.EventUpdateRequest;
 import com.api.TaveShot.domain.newsletter.admin.editor.EventEditor;
 import com.api.TaveShot.domain.newsletter.admin.repository.EventRepository;
 import com.api.TaveShot.domain.newsletter.client.repository.SubscriptionRepository;
-import com.api.TaveShot.domain.newsletter.domain.Event;
-import com.api.TaveShot.domain.newsletter.domain.LetterType;
-import com.api.TaveShot.domain.newsletter.domain.Newsletter;
-import com.api.TaveShot.domain.newsletter.domain.NewsletterEvent;
-import com.api.TaveShot.domain.newsletter.domain.QEvent;
+import com.api.TaveShot.domain.newsletter.domain.*;
 import com.api.TaveShot.domain.newsletter.event.NewsletterCreatedEvent;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterResponse;
@@ -18,7 +14,7 @@ import com.api.TaveShot.domain.newsletter.letter.repository.NewsletterRepository
 import com.api.TaveShot.domain.newsletter.letter.service.TemplateService;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
-import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -32,7 +28,6 @@ import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.time.temporal.IsoFields;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -44,6 +39,7 @@ public class AdminEventService {
     private final SubscriptionRepository subscriptionRepository;
     private final TemplateService templateService;
     private final ApplicationEventPublisher eventPublisher;
+    private final JPAQueryFactory jpaQueryFactory;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -139,11 +135,18 @@ public class AdminEventService {
         String content = templateService.renderHtmlContent(eventDtos, newsletterTitle, templateName);
 
         Newsletter newsletter = Newsletter.createNewsletter(
-                new NewsletterCreateRequest(newsletterTitle, content, letterType.toString()),
-                events
+                new NewsletterCreateRequest(newsletterTitle, content, letterType.toString())
         );
 
-        return newsletterRepository.save(newsletter);
+        newsletterRepository.save(newsletter);
+
+        // 각 이벤트에 대해 NewsletterEvent 생성
+        for (Event event : events) {
+            NewsletterEvent newsletterEvent = new NewsletterEvent(newsletter, event);
+            entityManager.persist(newsletterEvent);
+        }
+
+        return newsletter;
     }
 
     @Transactional
@@ -180,11 +183,12 @@ public class AdminEventService {
 
     private List<EventSingleResponse> getSortedEventSingleResponses(Newsletter newsletter) {
         QEvent qEvent = QEvent.event;
+        QNewsletterEvent qNewsletterEvent = QNewsletterEvent.newsletterEvent;
 
-        List<Event> sortedEvents = new JPAQuery<>(entityManager)
-                .select(qEvent)
-                .from(qEvent)
-                .where(qEvent.newsletterEvents.any().newsletter.eq(newsletter))
+        List<Event> sortedEvents = jpaQueryFactory
+                .selectFrom(qEvent)
+                .leftJoin(qEvent.newsletterEvents, qNewsletterEvent).fetchJoin()
+                .where(qNewsletterEvent.newsletter.eq(newsletter))
                 .orderBy(qEvent.startDate.asc(), qEvent.endDate.asc())
                 .fetch();
 
