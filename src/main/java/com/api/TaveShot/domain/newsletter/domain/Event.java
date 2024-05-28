@@ -32,8 +32,8 @@ public class Event extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private LetterType letterType;
 
-    @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
-    private List<Newsletter> newsletters = new ArrayList<>();
+    @OneToMany(mappedBy = "newsletter", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NewsletterEvent> newsletterEvents = new ArrayList<>();
 
     public static Event from(final EventCreateRequest request) {
         String inputType = request.letterType();

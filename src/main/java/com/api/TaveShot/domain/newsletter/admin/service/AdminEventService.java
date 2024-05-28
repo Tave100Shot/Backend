@@ -9,6 +9,7 @@ import com.api.TaveShot.domain.newsletter.client.repository.SubscriptionReposito
 import com.api.TaveShot.domain.newsletter.domain.Event;
 import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.domain.newsletter.domain.Newsletter;
+import com.api.TaveShot.domain.newsletter.domain.NewsletterEvent;
 import com.api.TaveShot.domain.newsletter.domain.QEvent;
 import com.api.TaveShot.domain.newsletter.event.NewsletterCreatedEvent;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterCreateRequest;
@@ -132,7 +133,7 @@ public class AdminEventService {
 
         List<EventSingleResponse> eventDtos = events.stream()
                 .map(EventSingleResponse::from)
-                .collect(Collectors.toList());
+                .toList();
 
         String templateName = letterType == LetterType.DEV_LETTER ? "dev_newsletter" : "employee_newsletter";
         String content = templateService.renderHtmlContent(eventDtos, newsletterTitle, templateName);
@@ -162,11 +163,11 @@ public class AdminEventService {
         // 이메일 수신자 목록을 미리 로드
         List<String> devRecipientEmails = subscriptionRepository.findAllByLetterType(devNewsletter.getLetterType()).stream()
                 .map(subscription -> subscription.getMember().getGitEmail())
-                .collect(Collectors.toList());
+                .toList();
 
         List<String> employeeRecipientEmails = subscriptionRepository.findAllByLetterType(employeeNewsletter.getLetterType()).stream()
                 .map(subscription -> subscription.getMember().getGitEmail())
-                .collect(Collectors.toList());
+                .toList();
 
         // 이벤트 발행
         eventPublisher.publishEvent(new NewsletterCreatedEvent(devNewsletter, devContent, devRecipientEmails));
@@ -183,13 +184,13 @@ public class AdminEventService {
         List<Event> sortedEvents = new JPAQuery<>(entityManager)
                 .select(qEvent)
                 .from(qEvent)
-                .where(qEvent.newsletters.contains(newsletter))
+                .where(qEvent.newsletterEvents.any().newsletter.eq(newsletter))
                 .orderBy(qEvent.startDate.asc(), qEvent.endDate.asc())
                 .fetch();
 
         return sortedEvents.stream()
                 .map(EventSingleResponse::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Scheduled(cron = "0 0/1 * * * ?") // 테스트용

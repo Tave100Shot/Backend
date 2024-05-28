@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -28,18 +29,18 @@ public class Newsletter extends BaseEntity {
 
     private boolean sent;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(name = "newsletter_event",
-            joinColumns = @JoinColumn(name = "newsletter_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id"))
-    private List<Event> events = new ArrayList<>();
+    @OneToMany(mappedBy = "newsletter", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NewsletterEvent> newsletterEvents = new ArrayList<>();
 
     @Builder
     public Newsletter(String title, String content, LetterType letterType, List<Event> events) {
         this.title = title;
         this.content = content;
         this.letterType = letterType;
-        this.events = events;
+        this.newsletterEvents = new ArrayList<>();
+        for (Event event : events) {
+            this.newsletterEvents.add(new NewsletterEvent(this, event));
+        }
     }
 
     public static Newsletter createNewsletter(NewsletterCreateRequest request, List<Event> events) {
