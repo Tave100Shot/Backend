@@ -1,6 +1,5 @@
 package com.api.TaveShot.domain.newsletter.admin.service;
 
-
 import com.api.TaveShot.domain.newsletter.admin.dto.EventCreateRequest;
 import com.api.TaveShot.domain.newsletter.admin.dto.EventSingleResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.EventUpdateRequest;
@@ -10,6 +9,7 @@ import com.api.TaveShot.domain.newsletter.client.repository.SubscriptionReposito
 import com.api.TaveShot.domain.newsletter.domain.Event;
 import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.domain.newsletter.domain.Newsletter;
+import com.api.TaveShot.domain.newsletter.domain.QEvent;
 import com.api.TaveShot.domain.newsletter.event.NewsletterCreatedEvent;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterResponse;
@@ -17,13 +17,15 @@ import com.api.TaveShot.domain.newsletter.letter.repository.NewsletterRepository
 import com.api.TaveShot.domain.newsletter.letter.service.TemplateService;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
+import com.querydsl.jpa.impl.JPAQuery;
+import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.mail.MessagingException;
 
 import java.time.LocalDate;
 import java.time.format.TextStyle;
@@ -41,6 +43,9 @@ public class AdminEventService {
     private final SubscriptionRepository subscriptionRepository;
     private final TemplateService templateService;
     private final ApplicationEventPublisher eventPublisher;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Transactional
     public Long register(final EventCreateRequest request) {
@@ -102,30 +107,32 @@ public class AdminEventService {
 
         List<Event> events = eventRepository.findEventsForNewsletter(endOfWeek, startOfWeek);
 
-        Map<LetterType, List<Event>> letterTypeEventsMap = events.stream()
-                .collect(Collectors.groupingBy(Event::getLetterType));
+        List<Event> devEvents = new ArrayList<>();
+        List<Event> employeeEvents = new ArrayList<>();
 
-        Long devNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.DEV_LETTER, endOfWeek);
-        Long employeeNewsletterId = createNewsletterForLetterType(letterTypeEventsMap, LetterType.EMPLOYEE_LETTER, endOfWeek);
+        for (Event event : events) {
+            if (event.getLetterType() == LetterType.DEV_LETTER) {
+                devEvents.add(event);
+            } else if (event.getLetterType() == LetterType.EMPLOYEE_LETTER) {
+                employeeEvents.add(event);
+            }
+        }
 
-        Map<LetterType, Long> newsletterIds = Map.of(
-                LetterType.DEV_LETTER, devNewsletterId,
-                LetterType.EMPLOYEE_LETTER, employeeNewsletterId
-        );
+        Newsletter devNewsletter = createNewsletterForLetterType(devEvents, LetterType.DEV_LETTER, endOfWeek);
+        Newsletter employeeNewsletter = createNewsletterForLetterType(employeeEvents, LetterType.EMPLOYEE_LETTER, endOfWeek);
 
-        return new NewsletterResponse(newsletterIds);
+        return new NewsletterResponse(devNewsletter, employeeNewsletter);
     }
 
-    private Long createNewsletterForLetterType(Map<LetterType, List<Event>> letterTypeEventsMap, LetterType letterType, LocalDate endOfWeek) {
+    private Newsletter createNewsletterForLetterType(List<Event> events, LetterType letterType, LocalDate endOfWeek) {
         int weekOfMonth = getWeekOfMonth(endOfWeek);
         String month = getMonthInKorean(endOfWeek);
 
         String newsletterTitle = String.format("%s %d째주 %s", month, weekOfMonth, letterType.toString());
-        List<Event> events = letterTypeEventsMap.getOrDefault(letterType, Collections.emptyList());
 
         List<EventSingleResponse> eventDtos = events.stream()
                 .map(EventSingleResponse::from)
-                .toList();
+                .collect(Collectors.toList());
 
         String templateName = letterType == LetterType.DEV_LETTER ? "dev_newsletter" : "employee_newsletter";
         String content = templateService.renderHtmlContent(eventDtos, newsletterTitle, templateName);
@@ -135,30 +142,21 @@ public class AdminEventService {
                 events
         );
 
-        Newsletter savedNewsletter = newsletterRepository.save(newsletter);
-        return savedNewsletter.getId();
+        return newsletterRepository.save(newsletter);
     }
 
     @Transactional
     public void sendWeeklyNewsletter(LocalDate endOfWeek) throws MessagingException {
         NewsletterResponse newsletterResponse = createWeeklyNewsletter(endOfWeek);
 
-        Newsletter devNewsletter = newsletterRepository.findById(newsletterResponse.newsletterIds().get(LetterType.DEV_LETTER))
-                .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
-        Newsletter employeeNewsletter = newsletterRepository.findById(newsletterResponse.newsletterIds().get(LetterType.EMPLOYEE_LETTER))
-                .orElseThrow(() -> new ApiException(ErrorType.NEWSLETTER_NOT_FOUND));
+        Newsletter devNewsletter = newsletterResponse.devNewsletter();
+        Newsletter employeeNewsletter = newsletterResponse.employeeNewsletter();
 
-        // 정렬된 이벤트 리스트를 다시 렌더링
-        List<EventSingleResponse> devEvents = new ArrayList<>(devNewsletter.getEvents().stream()
-                .map(EventSingleResponse::from)
-                .sorted(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate))
-                .collect(Collectors.toList()));
+        // QueryDSL을 사용하여 정렬된 이벤트 리스트 가져오기
+        List<EventSingleResponse> devEvents = getSortedEventSingleResponses(devNewsletter);
         String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(), "dev_newsletter.html");
 
-        List<EventSingleResponse> employeeEvents = new ArrayList<>(employeeNewsletter.getEvents().stream()
-                .map(EventSingleResponse::from)
-                .sorted(Comparator.comparing(EventSingleResponse::startDate).thenComparing(EventSingleResponse::endDate))
-                .collect(Collectors.toList()));
+        List<EventSingleResponse> employeeEvents = getSortedEventSingleResponses(employeeNewsletter);
         String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(), "employee_newsletter.html");
 
         // 이메일 수신자 목록을 미리 로드
@@ -179,15 +177,28 @@ public class AdminEventService {
         employeeNewsletter.letterSent();
     }
 
+    private List<EventSingleResponse> getSortedEventSingleResponses(Newsletter newsletter) {
+        QEvent qEvent = QEvent.event;
+
+        List<Event> sortedEvents = new JPAQuery<>(entityManager)
+                .select(qEvent)
+                .from(qEvent)
+                .where(qEvent.newsletters.contains(newsletter))
+                .orderBy(qEvent.startDate.asc(), qEvent.endDate.asc())
+                .fetch();
+
+        return sortedEvents.stream()
+                .map(EventSingleResponse::from)
+                .collect(Collectors.toList());
+    }
+
     @Scheduled(cron = "0 0/1 * * * ?") // 테스트용
     public void scheduledNewsletter() throws MessagingException {
         sendWeeklyNewsletter(LocalDate.now());
     }
-}
 
-
-
-/*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
+    /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
     public void scheduledNewsletter() throws MessagingException {
         sendWeeklyNewsletter();
     }*/
+}
