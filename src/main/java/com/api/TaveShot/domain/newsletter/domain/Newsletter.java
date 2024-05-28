@@ -5,10 +5,6 @@ import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterCreateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,26 +25,18 @@ public class Newsletter extends BaseEntity {
 
     private boolean sent;
 
-    @OneToMany(mappedBy = "newsletter", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<NewsletterEvent> newsletterEvents = new ArrayList<>();
-
     @Builder
-    public Newsletter(String title, String content, LetterType letterType, List<Event> events) {
+    public Newsletter(String title, String content, LetterType letterType) {
         this.title = title;
         this.content = content;
         this.letterType = letterType;
-        this.newsletterEvents = new ArrayList<>();
-        for (Event event : events) {
-            this.newsletterEvents.add(new NewsletterEvent(this, event));
-        }
     }
 
-    public static Newsletter createNewsletter(NewsletterCreateRequest request, List<Event> events) {
+    public static Newsletter createNewsletter(NewsletterCreateRequest request) {
         return Newsletter.builder()
                 .title(request.title())
                 .content(request.content())
                 .letterType(LetterType.valueOf(request.letterType()))
-                .events(events)
                 .build();
     }
 
