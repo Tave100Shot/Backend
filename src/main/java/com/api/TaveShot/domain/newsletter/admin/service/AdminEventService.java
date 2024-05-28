@@ -1,25 +1,29 @@
 package com.api.TaveShot.domain.newsletter.admin.service;
 
-import com.api.TaveShot.domain.newsletter.admin.dto.*;
+
+import com.api.TaveShot.domain.newsletter.admin.dto.EventCreateRequest;
+import com.api.TaveShot.domain.newsletter.admin.dto.EventSingleResponse;
+import com.api.TaveShot.domain.newsletter.admin.dto.EventUpdateRequest;
 import com.api.TaveShot.domain.newsletter.admin.editor.EventEditor;
-import com.api.TaveShot.domain.newsletter.client.domain.Subscription;
-import com.api.TaveShot.domain.newsletter.client.service.EmailSenderService;
+import com.api.TaveShot.domain.newsletter.admin.repository.EventRepository;
 import com.api.TaveShot.domain.newsletter.client.repository.SubscriptionRepository;
 import com.api.TaveShot.domain.newsletter.domain.Event;
 import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.domain.newsletter.domain.Newsletter;
-import com.api.TaveShot.domain.newsletter.admin.repository.EventRepository;
+import com.api.TaveShot.domain.newsletter.event.NewsletterCreatedEvent;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterResponse;
 import com.api.TaveShot.domain.newsletter.letter.repository.NewsletterRepository;
 import com.api.TaveShot.domain.newsletter.letter.service.TemplateService;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.mail.MessagingException;
 
 import java.time.LocalDate;
 import java.time.format.TextStyle;
@@ -35,8 +39,8 @@ public class AdminEventService {
     private final EventRepository eventRepository;
     private final NewsletterRepository newsletterRepository;
     private final SubscriptionRepository subscriptionRepository;
-    private final EmailSenderService emailSenderService;
     private final TemplateService templateService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Long register(final EventCreateRequest request) {
@@ -157,25 +161,22 @@ public class AdminEventService {
                 .collect(Collectors.toList()));
         String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(), "employee_newsletter.html");
 
-        sendEmailsToSubscribers(devNewsletter, devContent);
-        sendEmailsToSubscribers(employeeNewsletter, employeeContent);
+        // 이메일 수신자 목록을 미리 로드
+        List<String> devRecipientEmails = subscriptionRepository.findAllByLetterType(devNewsletter.getLetterType()).stream()
+                .map(subscription -> subscription.getMember().getGitEmail())
+                .collect(Collectors.toList());
+
+        List<String> employeeRecipientEmails = subscriptionRepository.findAllByLetterType(employeeNewsletter.getLetterType()).stream()
+                .map(subscription -> subscription.getMember().getGitEmail())
+                .collect(Collectors.toList());
+
+        // 이벤트 발행
+        eventPublisher.publishEvent(new NewsletterCreatedEvent(devNewsletter, devContent, devRecipientEmails));
+        eventPublisher.publishEvent(new NewsletterCreatedEvent(employeeNewsletter, employeeContent, employeeRecipientEmails));
 
         // 뉴스레터 전송 후 상태 업데이트
         devNewsletter.letterSent();
         employeeNewsletter.letterSent();
-    }
-
-    private void sendEmailsToSubscribers(Newsletter newsletter, String content) throws MessagingException {
-        List<Subscription> subscriptions = subscriptionRepository.findAllByLetterType(newsletter.getLetterType());
-        for (Subscription subscription : subscriptions) {
-            if (canSend(subscription.getLetterType(), newsletter.getLetterType())) {
-                emailSenderService.sendEmail(subscription.getMember().getGitEmail(), newsletter.getTitle(), content);
-            }
-        }
-    }
-
-    private boolean canSend(LetterType subscribedType, LetterType newsletterType) {
-        return subscribedType == LetterType.ALL || subscribedType == newsletterType;
     }
 
     @Scheduled(cron = "0 0/1 * * * ?") // 테스트용
@@ -183,6 +184,7 @@ public class AdminEventService {
         sendWeeklyNewsletter(LocalDate.now());
     }
 }
+
 
 
 /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
