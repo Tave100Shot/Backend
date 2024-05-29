@@ -1,7 +1,5 @@
 package com.api.TaveShot.domain.newsletter.client.controller;
 
-import com.api.TaveShot.domain.Member.domain.Member;
-import com.api.TaveShot.domain.Member.repository.MemberRepository;
 import com.api.TaveShot.domain.newsletter.client.service.EmailService;
 import com.api.TaveShot.domain.newsletter.client.service.EmailTokenService;
 import com.api.TaveShot.global.success.SuccessResponse;
@@ -30,7 +28,8 @@ public class EmailController {
     @PostMapping("/send-verification")
     public SuccessResponse<String> sendVerificationEmail() {
         String tokenId = emailTokenService.createEmailToken();
-        return new SuccessResponse<>(tokenId);
+        String verificationUrl = "http://localhost:3000/api/email/verify?token=" + tokenId;
+        return new SuccessResponse<>(verificationUrl);
     }
 
     @Operation(summary = "이메일 인증", description = "사용자의 이메일 인증을 처리합니다.")
