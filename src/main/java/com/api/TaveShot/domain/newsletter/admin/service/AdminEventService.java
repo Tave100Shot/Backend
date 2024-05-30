@@ -179,10 +179,6 @@ public class AdminEventService {
         eventPublisher.publishEvent(new NewsletterCreatedEvent(devNewsletter, devContent, devRecipientEmails));
         eventPublisher.publishEvent(
                 new NewsletterCreatedEvent(employeeNewsletter, employeeContent, employeeRecipientEmails));
-
-        // 뉴스레터 전송 후 상태 업데이트
-        devNewsletter.letterSent();
-        employeeNewsletter.letterSent();
     }
 
     private List<EventSingleResponse> getSortedEventSingleResponses(final Newsletter devNewsletter) {

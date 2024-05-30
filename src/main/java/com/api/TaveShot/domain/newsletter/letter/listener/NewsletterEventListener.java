@@ -35,5 +35,7 @@ public class NewsletterEventListener {
                         throw new ApiException(ErrorType._STATIC_ERROR_RUNTIME_EXCEPTION);
                     }
                 });
+
+        event.getNewsletter().letterSent();
     }
 }
