@@ -5,8 +5,12 @@ import com.api.TaveShot.domain.newsletter.admin.dto.EventSingleResponse;
 import com.api.TaveShot.domain.newsletter.admin.dto.EventUpdateRequest;
 import com.api.TaveShot.domain.newsletter.admin.editor.EventEditor;
 import com.api.TaveShot.domain.newsletter.admin.repository.EventRepository;
+import com.api.TaveShot.domain.newsletter.admin.repository.NewsletterEventRepository;
 import com.api.TaveShot.domain.newsletter.client.repository.SubscriptionRepository;
-import com.api.TaveShot.domain.newsletter.domain.*;
+import com.api.TaveShot.domain.newsletter.domain.Event;
+import com.api.TaveShot.domain.newsletter.domain.LetterType;
+import com.api.TaveShot.domain.newsletter.domain.Newsletter;
+import com.api.TaveShot.domain.newsletter.domain.NewsletterEvent;
 import com.api.TaveShot.domain.newsletter.event.NewsletterCreatedEvent;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterCreateRequest;
 import com.api.TaveShot.domain.newsletter.letter.dto.NewsletterResponse;
@@ -14,20 +18,18 @@ import com.api.TaveShot.domain.newsletter.letter.repository.NewsletterRepository
 import com.api.TaveShot.domain.newsletter.letter.service.TemplateService;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.mail.MessagingException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.time.temporal.IsoFields;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.format.TextStyle;
-import java.time.temporal.IsoFields;
-import java.util.*;
 
 @Service
 @Transactional
@@ -39,9 +41,7 @@ public class AdminEventService {
     private final SubscriptionRepository subscriptionRepository;
     private final TemplateService templateService;
     private final ApplicationEventPublisher eventPublisher;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final NewsletterEventRepository newsletterEventRepository;
 
     @Transactional
     public Long register(final EventCreateRequest request) {
@@ -90,7 +90,8 @@ public class AdminEventService {
     }
 
     private int getWeekOfMonth(LocalDate date) {
-        return date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) - LocalDate.of(date.getYear(), date.getMonth(), 1).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) + 1;
+        return date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) - LocalDate.of(date.getYear(), date.getMonth(), 1)
+                .get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) + 1;
     }
 
     private String getMonthInKorean(LocalDate date) {
@@ -139,12 +140,11 @@ public class AdminEventService {
 
         newsletterRepository.save(newsletter);
 
-        // 각 이벤트에 대해 NewsletterEvent 생성
-        for (Event event : events) {
-            NewsletterEvent newsletterEvent = new NewsletterEvent(newsletter, event);
-            entityManager.persist(newsletterEvent);
-        }
+        List<NewsletterEvent> newsletterEvents = events.stream()
+                .map(event -> new NewsletterEvent(newsletter, event))
+                .toList();
 
+        newsletterEventRepository.saveAll(newsletterEvents);
         return newsletter;
     }
 
@@ -157,23 +157,28 @@ public class AdminEventService {
 
         // QueryDSL을 사용하여 정렬된 이벤트 리스트 가져오기
         List<EventSingleResponse> devEvents = getSortedEventSingleResponses(devNewsletter);
-        String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(), "dev_newsletter.html");
+        String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(),
+                "dev_newsletter.html");
 
         List<EventSingleResponse> employeeEvents = getSortedEventSingleResponses(employeeNewsletter);
-        String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(), "employee_newsletter.html");
+        String employeeContent = templateService.renderHtmlContent(employeeEvents, employeeNewsletter.getTitle(),
+                "employee_newsletter.html");
 
         // 이메일 수신자 목록을 미리 로드
-        List<String> devRecipientEmails = subscriptionRepository.findAllByLetterType(devNewsletter.getLetterType()).stream()
+        List<String> devRecipientEmails = subscriptionRepository.findAllByLetterType(devNewsletter.getLetterType())
+                .stream()
                 .map(subscription -> subscription.getMember().getGitEmail())
                 .toList();
 
-        List<String> employeeRecipientEmails = subscriptionRepository.findAllByLetterType(employeeNewsletter.getLetterType()).stream()
+        List<String> employeeRecipientEmails = subscriptionRepository.findAllByLetterType(
+                        employeeNewsletter.getLetterType()).stream()
                 .map(subscription -> subscription.getMember().getGitEmail())
                 .toList();
 
         // 이벤트 발행
         eventPublisher.publishEvent(new NewsletterCreatedEvent(devNewsletter, devContent, devRecipientEmails));
-        eventPublisher.publishEvent(new NewsletterCreatedEvent(employeeNewsletter, employeeContent, employeeRecipientEmails));
+        eventPublisher.publishEvent(
+                new NewsletterCreatedEvent(employeeNewsletter, employeeContent, employeeRecipientEmails));
 
         // 뉴스레터 전송 후 상태 업데이트
         devNewsletter.letterSent();
