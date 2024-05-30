@@ -111,6 +111,9 @@ public enum ErrorType {
     _EMAIL_SEND_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5000","메일 전송에 실패했습니다." ),
     _TEMPLATE_READ_FAILED(INTERNAL_SERVER_ERROR,"EAMIL5001","템플릿 변환에 실패했습니다." ),
 
+    _EMAIL_SEND_FAILED_LISTENER(INTERNAL_SERVER_ERROR,"EAMIL5000","리스너에서 메일 전송에 실패했습니다."),
+
+
     // ---------------------------------------------- static ---------------------------------------------
     _STATIC_ERROR_RUNTIME_EXCEPTION(INTERNAL_SERVER_ERROR, "SERVER_500", "알 수 없는 서버 에러입니다.")
     ;

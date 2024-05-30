@@ -39,7 +39,6 @@ public class AdminEventService {
     private final SubscriptionRepository subscriptionRepository;
     private final TemplateService templateService;
     private final ApplicationEventPublisher eventPublisher;
-    private final JPAQueryFactory jpaQueryFactory;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -181,20 +180,8 @@ public class AdminEventService {
         employeeNewsletter.letterSent();
     }
 
-    private List<EventSingleResponse> getSortedEventSingleResponses(Newsletter newsletter) {
-        QEvent qEvent = QEvent.event;
-        QNewsletterEvent qNewsletterEvent = QNewsletterEvent.newsletterEvent;
-
-        List<Event> sortedEvents = jpaQueryFactory
-                .selectFrom(qEvent)
-                .leftJoin(qEvent.newsletterEvents, qNewsletterEvent).fetchJoin()
-                .where(qNewsletterEvent.newsletter.eq(newsletter))
-                .orderBy(qEvent.startDate.asc(), qEvent.endDate.asc())
-                .fetch();
-
-        return sortedEvents.stream()
-                .map(EventSingleResponse::from)
-                .toList();
+    private List<EventSingleResponse> getSortedEventSingleResponses(final Newsletter devNewsletter) {
+        return eventRepository.getSortedEventSingleResponses(devNewsletter);
     }
 
     @Scheduled(cron = "0 0/1 * * * ?") // 테스트용
