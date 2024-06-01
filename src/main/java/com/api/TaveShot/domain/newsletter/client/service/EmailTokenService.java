@@ -41,7 +41,7 @@ public class EmailTokenService {
         // JWT 토큰을 생성하고 만료 시간 설정
         String jwtToken = jwtProvider.generateJwtTokenForEmail(String.valueOf(currentMember.getId()));
 
-        String url = "http://43.203.64.45:8080/api/email/verify?token=" + jwtToken;
+        String url = "http://localhost:3000/email/verify?token=" + jwtToken;
         String htmlContent = getHtmlContent(currentMember.getGitEmail(), currentMember.getBojName(), url);
 
         try {
