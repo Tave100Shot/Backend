@@ -30,7 +30,9 @@ public class EmailController {
     @PostMapping("/send-verification")
     public SuccessResponse<String> sendVerificationEmail() {
         String tokenId = emailTokenService.createEmailToken();
-        return new SuccessResponse<>(tokenId);
+        String verificationUrl = "http://localhost:3000/api/email/verify?token=" + tokenId;
+        return new SuccessResponse<>(verificationUrl);
+        //return new SuccessResponse<>(tokenId);
     }
 
     @Operation(summary = "이메일 인증", description = "사용자의 이메일 인증을 처리합니다.")
