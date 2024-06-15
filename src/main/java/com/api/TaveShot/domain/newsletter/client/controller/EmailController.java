@@ -1,7 +1,6 @@
 package com.api.TaveShot.domain.newsletter.client.controller;
 
-import com.api.TaveShot.domain.Member.domain.Member;
-import com.api.TaveShot.domain.Member.repository.MemberRepository;
+
 import com.api.TaveShot.domain.newsletter.client.service.EmailService;
 import com.api.TaveShot.domain.newsletter.client.service.EmailTokenService;
 import com.api.TaveShot.global.success.SuccessResponse;
@@ -10,9 +9,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +41,7 @@ public class EmailController {
                             schema = @Schema(implementation = Boolean.class)))
     })
     @GetMapping("/verify")
-    public SuccessResponse<Long> verifyEmail(@Valid @RequestParam String token) {
+    public SuccessResponse<Long> verifyEmail(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         return new SuccessResponse<>(emailService.verifyEmail(token));
     }
 }
