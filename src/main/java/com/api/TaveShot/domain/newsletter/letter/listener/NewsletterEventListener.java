@@ -1,11 +1,15 @@
 package com.api.TaveShot.domain.newsletter.letter.listener;
 
+import com.api.TaveShot.domain.Member.domain.Member;
+import com.api.TaveShot.domain.Member.repository.MemberRepository;
 import com.api.TaveShot.domain.newsletter.client.service.EmailSenderService;
+import com.api.TaveShot.domain.newsletter.domain.EmailSendStatus;
+import com.api.TaveShot.domain.newsletter.domain.Newsletter;
 import com.api.TaveShot.domain.newsletter.event.NewsletterCreatedEvent;
+import com.api.TaveShot.domain.newsletter.repository.EmailSendStatusRepository;
 import com.api.TaveShot.global.exception.ApiException;
 import com.api.TaveShot.global.exception.ErrorType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import jakarta.mail.MessagingException;
@@ -18,24 +22,32 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class NewsletterEventListener {
     private final EmailSenderService emailSenderService;
+    private final EmailSendStatusRepository emailSendStatusRepository;
+    private final MemberRepository memberRepository;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleNewsletterCreatedEvent(NewsletterCreatedEvent event) {
-        String content = event.getContent();
+        Newsletter newsletter = event.getNewsletter();
         List<String> recipientEmails = event.getRecipientEmails();
 
-        recipientEmails
-                .forEach(email -> {
-                    try {
-                        emailSenderService.sendEmail(email, event.getNewsletter().getTitle(), content);
-                    } catch (MessagingException e) {
-                        throw new ApiException(ErrorType._EMAIL_SEND_FAILED_LISTENER);
-                    } catch (Exception e) {
-                        throw new ApiException(ErrorType._STATIC_ERROR_RUNTIME_EXCEPTION);
-                    }
-                });
+        recipientEmails.forEach(email -> {
+            Member member = memberRepository.findByGitEmail(email).orElse(null);
+            EmailSendStatus status = EmailSendStatus.builder()
+                    .newsletter(newsletter)
+                    .member(member)
+                    .email(email)
+                    .build();
 
-        event.getNewsletter().letterSent();
+            try {
+                emailSenderService.sendEmail(email, newsletter.getTitle(), event.getContent());
+                status.markSuccess();
+            } catch (MessagingException e) {
+                status.markFailed();
+                throw new ApiException(ErrorType._EMAIL_SEND_FAILED_LISTENER);
+            } finally {
+                emailSendStatusRepository.save(status);
+            }
+        });
     }
 }
