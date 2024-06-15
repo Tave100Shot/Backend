@@ -192,6 +192,6 @@ public class AdminEventService {
 
     /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
     public void scheduledNewsletter() throws MessagingException {
-        sendWeeklyNewsletter();
+        sendWeeklyNewsletter(LocalDate.now());
     }*/
 }

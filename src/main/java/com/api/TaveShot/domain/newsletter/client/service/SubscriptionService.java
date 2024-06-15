@@ -76,7 +76,6 @@ public class SubscriptionService {
             subscriptionRepository.save(subscription);
 
             member.subscribed();
-            member.updateSubscription(subscription);
             memberRepository.save(member);
 
             responses.add(createSubscriptionResponse(member, type));
