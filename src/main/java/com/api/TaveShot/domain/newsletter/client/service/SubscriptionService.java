@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
@@ -57,7 +56,8 @@ public class SubscriptionService {
         return processSubscriptions(member, requestedTypes);
     }
 
-    private List<SubscriptionResponse> processSubscriptions(Member member, List<LetterType> requestedTypes) throws ApiException {
+    @Transactional
+    public List<SubscriptionResponse> processSubscriptions(Member member, List<LetterType> requestedTypes) throws ApiException {
         List<SubscriptionResponse> responses = new ArrayList<>();
         for (LetterType type : requestedTypes) {
             boolean hasGitEmail = member.getGitEmail() != null;
