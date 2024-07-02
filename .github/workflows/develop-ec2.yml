@@ -57,7 +57,7 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
 
   deploy-to-ec2:
     name: Deploy to EC2
@@ -66,18 +66,27 @@ jobs:
     environment: production
 
     steps:
+      - name: Create SSH key file
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > /home/ec2-user/.ssh/taveshotV2.pem
+          chmod 600 /home/ec2-user/.ssh/taveshotV2.pem
+
       - name: SSH into EC2 and run Docker container
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.EC2_ADDRESS }}
           username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: /home/ec2-user/.ssh/taveshotV2.pem
           envs: IMAGE=${{ needs.build-docker-and-push-ecr.outputs.image }}
           script: |
-            # 8080 포트를 사용하는 프로세스 찾기 및 종료
-            sudo lsof -t -i :8080 | xargs sudo kill -9 || true
-            # Docker 컨테이너 실행
+            # 현재 실행 중인 Java 애플리케이션 컨테이너 중지 및 제거
+            for CONTAINER_ID in $(docker ps -q); do
+              IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' $CONTAINER_ID)
+              if [[ "$IMAGE_NAME" == *"100shot-ec2-back"* ]]; then
+                docker stop $CONTAINER_ID
+                docker rm $CONTAINER_ID
+              fi
+            done
+            # 새로운 Docker 컨테이너 실행
             docker pull $IMAGE
-            docker stop my-app || true
-            docker rm my-app || true
             docker run -d --name my-app -p 8080:8080 $IMAGE
