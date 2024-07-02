@@ -50,17 +50,18 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
     }
 
     @Override
-    public List<Event> findEventsForNewsletter(LocalDate endOfWeek, LocalDate startOfWeek) {
+    public List<Event> findEventsForNewsletter(LocalDate startOfWeek, LocalDate endOfWeek) {
         return jpaQueryFactory
                 .selectFrom(event)
                 .where(
-                        event.startDate.between(startOfWeek, endOfWeek),
-                        event.endDate.goe(endOfWeek), // 이미 끝난 행사 제외
+                        event.startDate.loe(endOfWeek.plusDays(6)), // 시작 날짜가 보내는 날짜보다 일주일 이후인 행사들까지
+                        event.endDate.goe(endOfWeek), // 아직 끝나지 않은 행사
                         getActivated()
                 )
                 .orderBy(event.startDate.asc(), event.endDate.asc())
                 .fetch();
     }
+
     private BooleanExpression getActivated() {
         return event.deleted.isFalse();
     }

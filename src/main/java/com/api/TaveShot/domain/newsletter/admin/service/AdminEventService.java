@@ -100,9 +100,10 @@ public class AdminEventService {
 
     @Transactional
     public NewsletterResponse createWeeklyNewsletter(LocalDate endOfWeek) {
-        LocalDate startOfWeek = endOfWeek.minusDays(7);
+        LocalDate startOfWeek = endOfWeek.minusDays(6); // 주간의 시작 날짜 계산
 
-        List<Event> events = eventRepository.findEventsForNewsletter(endOfWeek, startOfWeek);
+        // 주간의 시작 날짜와 끝나는 날짜를 기준으로 이벤트 취합
+        List<Event> events = eventRepository.findEventsForNewsletter(startOfWeek, endOfWeek);
 
         List<Event> devEvents = new ArrayList<>();
         List<Event> employeeEvents = new ArrayList<>();
@@ -155,7 +156,7 @@ public class AdminEventService {
         Newsletter devNewsletter = newsletterResponse.devNewsletter();
         Newsletter employeeNewsletter = newsletterResponse.employeeNewsletter();
 
-        // QueryDSL을 사용하여 정렬된 이벤트 리스트 가져오기
+        // 정렬된 이벤트 리스트 가져오기
         List<EventSingleResponse> devEvents = getSortedEventSingleResponses(devNewsletter);
         String devContent = templateService.renderHtmlContent(devEvents, devNewsletter.getTitle(),
                 "dev_newsletter.html");
@@ -181,17 +182,17 @@ public class AdminEventService {
                 new NewsletterCreatedEvent(employeeNewsletter, employeeContent, employeeRecipientEmails));
     }
 
-    private List<EventSingleResponse> getSortedEventSingleResponses(final Newsletter devNewsletter) {
-        return eventRepository.getSortedEventSingleResponses(devNewsletter);
+    private List<EventSingleResponse> getSortedEventSingleResponses(final Newsletter newsletter) {
+        return eventRepository.getSortedEventSingleResponses(newsletter);
     }
 
-    /*@Scheduled(cron = "0 0/1 * * * ?") // 테스트용
+    @Scheduled(cron = "0 0/1 * * * ?") // 테스트용
+    public void scheduledNewsletter() throws MessagingException {
+        sendWeeklyNewsletter(LocalDate.now());
+    }
+
+    /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
     public void scheduledNewsletter() throws MessagingException {
         sendWeeklyNewsletter(LocalDate.now());
     }*/
-
-    @Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
-    public void scheduledNewsletter() throws MessagingException {
-        sendWeeklyNewsletter(LocalDate.now());
-    }
 }
