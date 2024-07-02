@@ -186,13 +186,13 @@ public class AdminEventService {
         return eventRepository.getSortedEventSingleResponses(newsletter);
     }
 
-    @Scheduled(cron = "0 0/1 * * * ?") // 테스트용
-    public void scheduledNewsletter() throws MessagingException {
-        sendWeeklyNewsletter(LocalDate.now());
-    }
-
-    /*@Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
+    /*@Scheduled(cron = "0 0/1 * * * ?") // 테스트용
     public void scheduledNewsletter() throws MessagingException {
         sendWeeklyNewsletter(LocalDate.now());
     }*/
+
+    @Scheduled(cron = "0 0 8 * * MON") // 매주 월요일 8시에 실행
+    public void scheduledNewsletter() throws MessagingException {
+        sendWeeklyNewsletter(LocalDate.now());
+    }
 }
