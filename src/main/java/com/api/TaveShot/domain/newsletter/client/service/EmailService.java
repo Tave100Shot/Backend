@@ -23,6 +23,10 @@ public class EmailService {
     @Transactional
     public Long verifyEmail(String token) throws ApiException {
         try {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+
             String memberId = jwtProvider.getUserIdFromToken(token);
             Member member = memberService.findById(Long.parseLong(memberId));
             if (!member.isEmailVerified()) {

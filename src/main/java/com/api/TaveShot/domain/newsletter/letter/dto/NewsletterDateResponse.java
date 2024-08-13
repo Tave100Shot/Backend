@@ -1,4 +1,4 @@
-package com.api.TaveShot.domain.newsletter.admin.dto;
+package com.api.TaveShot.domain.newsletter.letter.dto;
 
 import java.util.List;
 

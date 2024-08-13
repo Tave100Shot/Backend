@@ -10,6 +10,9 @@ public class TimeUtil {
     }
 
     public static String formatNewsletter(final LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return "Unknown";
+        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return localDateTime.format(formatter);
     }

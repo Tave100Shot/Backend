@@ -1,6 +1,7 @@
-package com.api.TaveShot.domain.newsletter.admin.dto;
+package com.api.TaveShot.domain.newsletter.letter.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 
 @Schema(description = "최근 6개 뉴스레터")

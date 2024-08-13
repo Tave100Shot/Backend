@@ -1,6 +1,4 @@
-package com.api.TaveShot.domain.newsletter.repository;
-
-import static com.api.TaveShot.domain.newsletter.domain.QNewsletter.newsletter;
+package com.api.TaveShot.domain.newsletter.letter.repository;
 
 import com.api.TaveShot.domain.newsletter.domain.LetterType;
 import com.api.TaveShot.domain.newsletter.domain.Newsletter;
@@ -9,13 +7,17 @@ import com.api.TaveShot.global.exception.ErrorType;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static com.api.TaveShot.domain.newsletter.domain.QNewsletter.newsletter;
+import static org.springframework.util.StringUtils.hasText;
 
 @RequiredArgsConstructor
 public class NewsletterRepositoryImpl implements NewsletterRepositoryCustom {
@@ -85,6 +87,14 @@ public class NewsletterRepositoryImpl implements NewsletterRepositoryCustom {
                 .offset(pageable.getOffset())
                 .orderBy(newsletter.id.desc())
                 .fetch();
+    }
+
+    private BooleanExpression containsInContentOrTitle(String containWord) {
+        if (hasText(containWord)) {
+            return newsletter.content.contains(containWord)
+                    .or(newsletter.title.contains(containWord));
+        }
+        return null;
     }
 
     private Long countQuery(final List<LetterType> letterTypes, final String containWord) {

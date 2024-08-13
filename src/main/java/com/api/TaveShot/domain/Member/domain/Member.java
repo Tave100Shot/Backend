@@ -81,5 +81,10 @@ public class Member extends BaseEntity {
         this.isSubscribed = false;
     }
 
+    public void updateSubscription(Subscription subscription) {
+        this.subscription = subscription;
+        this.isSubscribed = true;
+    }
+
 }
 
